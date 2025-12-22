@@ -18,7 +18,6 @@ import { BugReportModal } from './components/modals/BugReportModal';
 import { SettingsModal } from './components/modals/SettingsModal';
 import { ChatMenu } from './components/modals/ChatMenu';
 import { ReportModal } from './components/modals/ReportModal';
-import { BugReportModal } from './components/modals/BugReportModal';
 
 const queryClient = new QueryClient();
 
@@ -98,11 +97,10 @@ function AppRoutes() {
         <>
           <UserMenu />
           <HelpMenu />
-      <BugReportModal />
+          <BugReportModal />
           <SettingsModal />
           <ChatMenu />
           <ReportModal />
-          <BugReportModal />
         </>
       )}
     </>
