@@ -3,6 +3,7 @@ import { Copy, ThumbsUp, ThumbsDown, Share2, RotateCw, MoreHorizontal, ChevronLe
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { MessageActionsMenu } from '../modals/MessageActionsMenu';
+import { MessageContent } from './MessageContent';
 import { useModalStore } from '@/stores/modalStore';
 import { useChatStore } from '@/stores/chatStore';
 import { chatService } from '@/lib/chatService';
@@ -225,7 +226,10 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
           {/* Content */}
           <div className="flex-1 space-y-3">
             <div className="prose prose-sm dark:prose-invert max-w-none">
-              <p className="whitespace-pre-wrap">{message.content}</p>
+              <MessageContent 
+                content={message.content} 
+                attachments={message.attachments as any}
+              />
             </div>
 
             {/* Actions */}

@@ -3,6 +3,11 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   created_at: string;
+  attachments?: Array<{
+    url: string;
+    name: string;
+    type: string;
+  }>;
 }
 
 export interface Chat {

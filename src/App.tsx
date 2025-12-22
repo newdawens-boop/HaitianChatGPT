@@ -6,6 +6,7 @@ import { Sidebar } from './components/layout/Sidebar';
 import { ChatPage } from './pages/ChatPage';
 import { LoginPage } from './pages/LoginPage';
 import { UpgradePage } from './pages/UpgradePage';
+import { SharedConversationPage } from './pages/SharedConversationPage';
 import { UserMenu } from './components/modals/UserMenu';
 import { HelpMenu } from './components/modals/HelpMenu';
 import { SettingsModal } from './components/modals/SettingsModal';
@@ -25,6 +26,7 @@ export default function App() {
               <Route path="/" element={<ChatPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/upgrade" element={<UpgradePage />} />
+              <Route path="/share/:token" element={<SharedConversationPage />} />
             </Routes>
             <UserMenu />
             <HelpMenu />
