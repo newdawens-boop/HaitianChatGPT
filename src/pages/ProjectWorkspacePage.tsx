@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Eye, Code, MoreVertical, X, Copy, Download, Github, FileCode } from 'lucide-react';
+import { Eye, Code, MoreVertical, X, Copy, Download, Github, FileCode, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProjectStore } from '@/stores/projectStore';
+import { projectService } from '@/lib/projectService';
+import { Project, ProjectFile } from '@/types/project';
 
 export function ProjectWorkspacePage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -10,99 +12,65 @@ export function ProjectWorkspacePage() {
   const [activeTab, setActiveTab] = useState<'preview' | 'code'>('preview');
   const [showMenu, setShowMenu] = useState(false);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [project, setProject] = useState<Project | null>(null);
+  const [files, setFiles] = useState<ProjectFile[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Get project from store or use demo data
-  const projectStore = useProjectStore();
-  const storedProject = projectId ? projectStore.getProject(projectId) : null;
+  // Load project data
+  useEffect(() => {
+    if (!projectId) return;
 
-  // Mock project data - in real app, fetch from store/API
-  const projectData = storedProject || {
-    id: projectId || '',
-    title: 'ChatGPT-Style Settings',
-    description: 'Interactive artifact',
-    status: 'ready' as const,
-    model: 'Sonnet 4.5',
-    files: [
-      {
-        path: 'index.html',
-        content: `<!DOCTYPE html>
-<html>
-<head>
-  <title>Settings</title>
-  <style>
-    body { font-family: system-ui; margin: 0; padding: 20px; }
-    h1 { color: #333; }
-  </style>
-</head>
-<body>
-  <h1>Settings Page</h1>
-  <div id="settings">
-    <div class="setting-item">
-      <h3>General</h3>
-      <p>Name, email, language preferences</p>
-    </div>
-    <div class="setting-item">
-      <h3>Security</h3>
-      <p>Password, 2FA, sessions</p>
-    </div>
-  </div>
-</body>
-</html>`,
-        language: 'html'
-      },
-      {
-        path: 'styles.css',
-        content: `body {
-  font-family: system-ui;
-  margin: 0;
-  padding: 20px;
-  background: #f5f5f5;
-}
+    const loadProject = async () => {
+      try {
+        setLoading(true);
+        const [projectData, filesData] = await Promise.all([
+          projectService.getProject(projectId),
+          projectService.getProjectFiles(projectId),
+        ]);
 
-.setting-item {
-  background: white;
-  padding: 1rem;
-  margin: 1rem 0;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}`,
-        language: 'css'
-      },
-      {
-        path: 'script.js',
-        content: `console.log('Settings loaded');
+        if (!projectData) {
+          toast.error('Project not found');
+          navigate('/projects');
+          return;
+        }
 
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOM ready');
-});`,
-        language: 'javascript'
+        setProject(projectData);
+        setFiles(filesData);
+        if (filesData.length > 0) {
+          setSelectedFile(filesData[0].path);
+        }
+      } catch (error: any) {
+        console.error('Failed to load project:', error);
+        toast.error('Failed to load project');
+      } finally {
+        setLoading(false);
       }
-    ],
-    createdAt: new Date().toISOString()
-  };
+    };
+
+    loadProject();
+  }, [projectId, navigate]);
 
   const handleCopyAll = async () => {
-    const allCode = projectData.files.map((f: any) => `// ${f.path}\n${f.content}`).join('\n\n');
+    if (!files.length) return;
+    const allCode = files.map(f => `// ${f.path}\n${f.content}`).join('\n\n');
     await navigator.clipboard.writeText(allCode);
     toast.success('All code copied to clipboard');
     setShowMenu(false);
   };
 
   const handleDownload = () => {
-    // Create ZIP download (simplified - in real app use JSZip)
-    const allCode = projectData.files.map((f: any) => `// ${f.path}\n${f.content}`).join('\n\n');
-    const blob = new Blob([allCode], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${projectData.title}.txt`;
-    a.click();
-    toast.success('Project downloaded');
-    setShowMenu(false);
+    if (!project || !files.length) return;
+    try {
+      projectService.downloadAsZip(project, files);
+      toast.success('Project downloaded');
+      setShowMenu(false);
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   };
 
   const handleDownloadHTML = () => {
-    const htmlFile = projectData.files.find((f: any) => f.path.endsWith('.html'));
+    const htmlFile = files.find(f => f.path.endsWith('.html'));
     if (htmlFile) {
       const blob = new Blob([htmlFile.content], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
@@ -117,15 +85,44 @@ document.addEventListener('DOMContentLoaded', () => {
     setShowMenu(false);
   };
 
-  const handlePublish = () => {
-    // GitHub publishing flow
-    if (projectData.status === 'generating') {
+  const handlePublish = async () => {
+    if (!project || !files.length) return;
+    
+    if (project.status === 'generating') {
       toast.info('Code is still being prepared. This project will be available to publish soon.');
-    } else {
-      toast.info('GitHub authentication required. Please connect your GitHub account.');
+      setShowMenu(false);
+      return;
     }
-    setShowMenu(false);
+
+    try {
+      const repoUrl = await projectService.publishToGitHub(project, files);
+      await projectService.updateProject(project.id, { github_url: repoUrl });
+      toast.success('Published to GitHub!');
+      setShowMenu(false);
+    } catch (error: any) {
+      toast.error(error.message);
+      setShowMenu(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-white dark:bg-gray-900">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-purple-600" />
+          <p className="text-gray-600 dark:text-gray-400">Loading project...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-white dark:bg-gray-900">
+        <p className="text-gray-600 dark:text-gray-400">Project not found</p>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen flex flex-col bg-white dark:bg-gray-900">
@@ -140,8 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
               <X className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-lg font-semibold">{projectData.title}</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{projectData.description}</p>
+              <h1 className="text-lg font-semibold">{project.title}</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{project.description}</p>
             </div>
           </div>
           
@@ -260,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <div className="p-4">
                 <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Files</h3>
                 <div className="space-y-1">
-                  {projectData.files.map((file: any) => (
+                  {files.map((file) => (
                     <button
                       key={file.path}
                       onClick={() => setSelectedFile(file.path)}
@@ -286,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">{selectedFile}</h3>
                   </div>
                   <pre className="bg-[#282C34] text-[#ABB2BF] p-6 rounded-xl overflow-x-auto">
-                    <code>{projectData.files.find((f: any) => f.path === selectedFile)?.content}</code>
+                    <code>{files.find(f => f.path === selectedFile)?.content}</code>
                   </pre>
                 </div>
               ) : (
@@ -302,8 +299,8 @@ document.addEventListener('DOMContentLoaded', () => {
       {/* Footer - Model Info */}
       <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-6 py-3">
         <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-          <span>Model: {projectData.model}</span>
-          <span>{projectData.files.length} files</span>
+          <span>Model: {project.model}</span>
+          <span>{files.length} files</span>
         </div>
       </div>
     </div>

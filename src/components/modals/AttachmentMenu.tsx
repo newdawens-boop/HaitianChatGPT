@@ -1,7 +1,8 @@
-import { Camera, Paperclip, Image, Lightbulb, Search, ShoppingBag, BookOpen, Globe, Paintbrush, FileQuestion } from 'lucide-react';
+import { Camera, Paperclip, Image, Lightbulb, Search, ShoppingBag, BookOpen, Globe, Paintbrush, FileQuestion, FolderPlus } from 'lucide-react';
 import { useModalStore } from '@/stores/modalStore';
 import { useRef } from 'react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface AttachmentMenuProps {
   onFileSelect: (files: File[]) => void;
@@ -9,6 +10,7 @@ interface AttachmentMenuProps {
 
 export function AttachmentMenu({ onFileSelect }: AttachmentMenuProps) {
   const { isAttachmentMenuOpen, setAttachmentMenuOpen } = useModalStore();
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -57,6 +59,20 @@ export function AttachmentMenu({ onFileSelect }: AttachmentMenuProps) {
       />
       <div className="fixed bottom-20 left-4 w-72 bg-popover border border-border rounded-2xl shadow-2xl z-50 overflow-hidden animate-fadeIn">
         <div className="p-2">
+          <button
+            onClick={() => {
+              navigate('/new-project');
+              setAttachmentMenuOpen(false);
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors text-left bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800 mb-2"
+          >
+            <FolderPlus className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            <div>
+              <div className="font-medium text-purple-900 dark:text-purple-100">Create New Project</div>
+              <div className="text-xs text-purple-600 dark:text-purple-400">Build with AI</div>
+            </div>
+          </button>
+
           <button
             onClick={handleTakePhoto}
             className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors text-left"

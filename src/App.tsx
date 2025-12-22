@@ -12,6 +12,7 @@ import { UpgradePage } from './pages/UpgradePage';
 import { SharedConversationPage } from './pages/SharedConversationPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { ProjectWorkspacePage } from './pages/ProjectWorkspacePage';
+import { NewProjectPage } from './pages/NewProjectPage';
 import { UserMenu } from './components/modals/UserMenu';
 import { HelpMenu } from './components/modals/HelpMenu';
 import { BugReportModal } from './components/modals/BugReportModal';
@@ -72,6 +73,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <UpgradePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/new-project"
+          element={
+            <ProtectedRoute>
+              <NewProjectPage />
             </ProtectedRoute>
           }
         />
