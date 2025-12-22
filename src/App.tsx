@@ -4,10 +4,10 @@ import { Toaster } from 'sonner';
 import { AuthProvider, useAuth } from './lib/auth';
 import { Sidebar } from './components/layout/Sidebar';
 import { ChatPage } from './pages/ChatPage';
-import { LoginPage } from './pages/LoginPage';
-import { SignupPage } from './pages/SignupPage';
-import { VerifyEmailPage } from './pages/VerifyEmailPage';
-import { PublicHomePage } from './pages/PublicHomePage';
+import { WelcomePage } from './pages/WelcomePage';
+import { AuthPage } from './pages/AuthPage';
+import { CreatePasswordPage } from './pages/CreatePasswordPage';
+import { VerificationPage } from './pages/VerificationPage';
 import { UpgradePage } from './pages/UpgradePage';
 import { SharedConversationPage } from './pages/SharedConversationPage';
 import { ProjectsPage } from './pages/ProjectsPage';
@@ -53,10 +53,10 @@ function AppRoutes() {
     <>
       {user && <Sidebar />}
       <Routes>
-        <Route path="/welcome" element={user ? <Navigate to="/" replace /> : <PublicHomePage />} />
-        <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
-        <Route path="/signup" element={user ? <Navigate to="/" replace /> : <SignupPage />} />
-        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/welcome" element={user ? <Navigate to="/" replace /> : <WelcomePage />} />
+        <Route path="/auth" element={user ? <Navigate to="/" replace /> : <AuthPage />} />
+        <Route path="/create-password" element={user ? <Navigate to="/" replace /> : <CreatePasswordPage />} />
+        <Route path="/verify" element={<VerificationPage />} />
         <Route path="/share/:token" element={<SharedConversationPage />} />
         <Route
           path="/"
