@@ -1,8 +1,10 @@
 import { ChatHeader } from '@/components/features/ChatHeader';
 import { ChatMessage } from '@/components/features/ChatMessage';
 import { ChatInput } from '@/components/features/ChatInput';
+import { ImagePlaceholder } from '@/components/features/ImagePlaceholder';
 import { useChatStore } from '@/stores/chatStore';
 import { Loader2 } from 'lucide-react';
+import { chatService } from '@/lib/chatService';
 
 export function ChatPage() {
   const { messages, currentChatId, isLoading, loadingStatus } = useChatStore();
@@ -35,10 +37,17 @@ export function ChatPage() {
                     </div>
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span className="text-sm">{loadingStatus}</span>
-                    </div>
+                    {loadingStatus.includes('image') ? (
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{loadingStatus}</p>
+                        <ImagePlaceholder />
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span className="text-sm">{loadingStatus}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

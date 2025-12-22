@@ -54,7 +54,7 @@ export class ChatService {
     return data || [];
   }
 
-  async sendMessage(messages: any[], chatId?: string, model?: string): Promise<{ message: string; error?: string }> {
+  async sendMessage(messages: any[], chatId?: string, model?: string): Promise<{ message: string; generatedImage?: { url: string; prompt: string }; generatedFile?: { name: string; content: string; type: string }; error?: string }> {
     const { data, error } = await supabase.functions.invoke('chat', {
       body: { messages, chatId, model },
     });
@@ -73,7 +73,52 @@ export class ChatService {
       return { message: '', error: errorMessage };
     }
 
-    return { message: data.message };
+    // Parse response for special content types
+    let result: any = { message: data.message };
+
+    // Check if the response contains an image generation result
+    if (data.generatedImage) {
+      result.generatedImage = data.generatedImage;
+      // Don't include the raw JSON in the message
+      result.message = '';
+    }
+
+    // Check if the response contains a file creation result
+    if (data.generatedFile) {
+      result.generatedFile = data.generatedFile;
+    }
+
+    return result;
+  }
+
+  isImageRequest(text: string): boolean {
+    const imageKeywords = [
+      'create image', 'create logo', 'design logo', 'photo design',
+      'create a logo', 'create an image', 'design a logo', 'make a logo',
+      'make an image', 'generate image', 'generate logo', 'draw', 'design'
+    ];
+    const lowerText = text.toLowerCase();
+    return imageKeywords.some(keyword => lowerText.includes(keyword));
+  }
+
+  isFileRequest(text: string): boolean {
+    const fileKeywords = [
+      'create file', 'create a file', 'make file', 'generate file',
+      'create html', 'create python', 'create js', 'create javascript',
+      'create txt', 'create csv'
+    ];
+    const lowerText = text.toLowerCase();
+    return fileKeywords.some(keyword => lowerText.includes(keyword));
+  }
+
+  getLoadingStatus(text: string): string {
+    if (this.isImageRequest(text)) {
+      return 'Creating image...';
+    }
+    if (this.isFileRequest(text)) {
+      return 'Analyzing...';
+    }
+    return 'Thinking...';
   }
 
   async updateChat(chatId: string, updates: Partial<Chat>): Promise<boolean> {

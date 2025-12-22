@@ -6,6 +6,8 @@ import { useState } from 'react';
 import { MessageActionsMenu } from '../modals/MessageActionsMenu';
 import { MessageContent } from './MessageContent';
 import { ProjectArtifact } from './ProjectArtifact';
+import { useChatStore } from '@/stores/chatStore';
+import { Message } from '@/types/chat';
 import { useModalStore } from '@/stores/modalStore';
 import { useChatStore } from '@/stores/chatStore';
 import { chatService } from '@/lib/chatService';
@@ -20,6 +22,34 @@ interface ChatMessageProps {
 
 export function ChatMessage({ message, isLatest = false, messageIndex = 1, totalMessages = 1 }: ChatMessageProps) {
   const isUser = message.role === 'user';
+
+  const handleRetryImage = () => {
+    const { addMessage, setIsLoading, setLoadingStatus } = useChatStore.getState();
+    const retryMsg: Message = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: message.generatedImage?.prompt || 'Regenerate the previous image',
+      created_at: new Date().toISOString(),
+    };
+    addMessage(retryMsg);
+    setIsLoading(true);
+    setLoadingStatus('Creating image...');
+    toast.info('Regenerating image...');
+  };
+
+  const handleEditImage = (editDescription: string) => {
+    const { addMessage, setIsLoading, setLoadingStatus } = useChatStore.getState();
+    const editMsg: Message = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: editDescription,
+      created_at: new Date().toISOString(),
+    };
+    addMessage(editMsg);
+    setIsLoading(true);
+    setLoadingStatus('Editing image...');
+    toast.info('Editing image...');
+  };
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const { isMessageActionsOpen, setMessageActionsOpen } = useModalStore();
   const { messages, setMessages, currentChatId, setIsLoading, setEditingMessageId } = useChatStore();
@@ -237,6 +267,10 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
               <MessageContent 
                 content={message.content} 
                 attachments={message.attachments as any}
+                generatedImage={message.generatedImage}
+                generatedFile={message.generatedFile}
+                onRetryImage={handleRetryImage}
+                onEditImage={handleEditImage}
               />
             </div>
             
