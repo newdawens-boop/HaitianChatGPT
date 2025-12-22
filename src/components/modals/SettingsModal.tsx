@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Settings, Bell, Palette, Grid3x3, ShoppingBag, Database, Shield, Users, User } from 'lucide-react';
+import { X, Settings, Bell, Palette, Grid3x3, ShoppingBag, Database, Shield, Users, User, Bot } from 'lucide-react';
 import { useModalStore } from '@/stores/modalStore';
 import { GeneralSettings } from '../settings/GeneralSettings';
 import { NotificationsSettings } from '../settings/NotificationsSettings';
@@ -8,8 +8,9 @@ import { DataControlsSettings } from '../settings/DataControlsSettings';
 import { SecuritySettings } from '../settings/SecuritySettings';
 import { ParentalControlsSettings } from '../settings/ParentalControlsSettings';
 import { OrdersSettings } from '../settings/OrdersSettings';
+import { AIModelSettings } from '../settings/AIModelSettings';
 
-type SettingsTab = 'general' | 'notifications' | 'personalization' | 'apps' | 'orders' | 'data' | 'security' | 'parental' | 'account';
+type SettingsTab = 'general' | 'notifications' | 'personalization' | 'ai-model' | 'apps' | 'orders' | 'data' | 'security' | 'parental' | 'account';
 
 export function SettingsModal() {
   const { isSettingsOpen, setSettingsOpen } = useModalStore();
@@ -19,6 +20,7 @@ export function SettingsModal() {
 
   const tabs = [
     { id: 'general' as const, icon: Settings, label: 'General' },
+    { id: 'ai-model' as const, icon: Bot, label: 'AI Model' },
     { id: 'notifications' as const, icon: Bell, label: 'Notifications' },
     { id: 'personalization' as const, icon: Palette, label: 'Personalization' },
     { id: 'apps' as const, icon: Grid3x3, label: 'Apps' },
@@ -66,6 +68,7 @@ export function SettingsModal() {
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
           {activeTab === 'general' && <GeneralSettings />}
+          {activeTab === 'ai-model' && <AIModelSettings />}
           {activeTab === 'notifications' && <NotificationsSettings />}
           {activeTab === 'personalization' && <PersonalizationSettings />}
           {activeTab === 'orders' && <OrdersSettings />}

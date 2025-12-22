@@ -1,4 +1,5 @@
 import { X } from 'lucide-react';
+import { BugReportModal } from '@/components/modals/BugReportModal';
 import { useState } from 'react';
 import { useModalStore } from '@/stores/modalStore';
 import { toast } from 'sonner';

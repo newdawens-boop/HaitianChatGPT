@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import { MessageActionsMenu } from '../modals/MessageActionsMenu';
 import { MessageContent } from './MessageContent';
+import { ProjectArtifact } from './ProjectArtifact';
 import { useModalStore } from '@/stores/modalStore';
 import { useChatStore } from '@/stores/chatStore';
 import { chatService } from '@/lib/chatService';
@@ -238,6 +239,22 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
                 attachments={message.attachments as any}
               />
             </div>
+            
+            {/* Project Artifact - Detect if this message contains a project */}
+            {!isUser && (message.content.toLowerCase().includes('create a') || 
+                        message.content.toLowerCase().includes('build a') ||
+                        message.content.toLowerCase().includes('make a') ||
+                        message.content.toLowerCase().includes('settings') ||
+                        message.content.toLowerCase().includes('chatbot') ||
+                        message.content.toLowerCase().includes('project')) && (
+              <ProjectArtifact
+                projectId={`project-${message.id}`}
+                title={message.content.split('\n')[0].slice(0, 50) || 'Interactive Project'}
+                description="Interactive artifact"
+                status="ready"
+                preview={undefined}
+              />
+            )}
 
             {/* Actions */}
             {!isUser && (

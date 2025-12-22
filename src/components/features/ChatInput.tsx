@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { AttachmentMenu } from '../modals/AttachmentMenu';
 import { useModalStore } from '@/stores/modalStore';
-import { AIModelSelector } from './AIModelSelector';
+
 
 export function ChatInput() {
   const [input, setInput] = useState('');
@@ -359,9 +359,8 @@ export function ChatInput() {
           </div>
         )}
 
-        {/* Model Selector and Disclaimer */}
-        <div className="flex items-center justify-between mt-3">
-          <AIModelSelector />
+        {/* Disclaimer */}
+        <div className="mt-3 text-center">
           <p className="text-xs text-muted-foreground">
             Haitian ChatGPT can make mistakes. Check important info.
           </p>

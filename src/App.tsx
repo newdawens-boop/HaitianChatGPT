@@ -14,6 +14,7 @@ import { ProjectsPage } from './pages/ProjectsPage';
 import { ProjectWorkspacePage } from './pages/ProjectWorkspacePage';
 import { UserMenu } from './components/modals/UserMenu';
 import { HelpMenu } from './components/modals/HelpMenu';
+import { BugReportModal } from './components/modals/BugReportModal';
 import { SettingsModal } from './components/modals/SettingsModal';
 import { ChatMenu } from './components/modals/ChatMenu';
 import { ReportModal } from './components/modals/ReportModal';
@@ -97,6 +98,7 @@ function AppRoutes() {
         <>
           <UserMenu />
           <HelpMenu />
+      <BugReportModal />
           <SettingsModal />
           <ChatMenu />
           <ReportModal />
