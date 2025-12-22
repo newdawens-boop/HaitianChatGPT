@@ -1,4 +1,6 @@
 import { CodeBlock } from './CodeBlock';
+import { GeneratedImage } from './GeneratedImage';
+import { GeneratedFile } from './GeneratedFile';
 import { FileText, Image as ImageIcon, Download } from 'lucide-react';
 
 interface MessageContentProps {
@@ -8,9 +10,27 @@ interface MessageContentProps {
     name: string;
     type: string;
   }>;
+  generatedImage?: {
+    url: string;
+    prompt: string;
+  };
+  generatedFile?: {
+    name: string;
+    content: string;
+    type: string;
+  };
+  onRetryImage?: () => void;
+  onEditImage?: (editDescription: string) => void;
 }
 
-export function MessageContent({ content, attachments }: MessageContentProps) {
+export function MessageContent({ 
+  content, 
+  attachments, 
+  generatedImage, 
+  generatedFile,
+  onRetryImage,
+  onEditImage 
+}: MessageContentProps) {
   // Parse markdown-style code blocks
   const renderContent = (text: string) => {
     const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
@@ -54,6 +74,25 @@ export function MessageContent({ content, attachments }: MessageContentProps) {
   return (
     <div>
       {renderContent(content)}
+      
+      {/* Generated Image */}
+      {generatedImage && (
+        <GeneratedImage
+          imageUrl={generatedImage.url}
+          prompt={generatedImage.prompt}
+          onRetry={onRetryImage || (() => {})}
+          onEdit={onEditImage || (() => {})}
+        />
+      )}
+      
+      {/* Generated File */}
+      {generatedFile && (
+        <GeneratedFile
+          fileName={generatedFile.name}
+          fileContent={generatedFile.content}
+          fileType={generatedFile.type}
+        />
+      )}
       
       {attachments && attachments.length > 0 && (
         <div className="mt-3 space-y-2">

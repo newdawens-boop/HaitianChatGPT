@@ -19,6 +19,9 @@ import { BugReportModal } from './components/modals/BugReportModal';
 import { SettingsModal } from './components/modals/SettingsModal';
 import { ChatMenu } from './components/modals/ChatMenu';
 import { ReportModal } from './components/modals/ReportModal';
+import { ImageViewerModal } from './components/modals/ImageViewerModal';
+import { ImageEditorModal } from './components/modals/ImageEditorModal';
+import { FileViewerModal } from './components/modals/FileViewerModal';
 
 const queryClient = new QueryClient();
 
@@ -110,6 +113,16 @@ function AppRoutes() {
           <SettingsModal />
           <ChatMenu />
           <ReportModal />
+          <ImageViewerModal imageUrl={useModalStore.getState().currentImageUrl} />
+          <ImageEditorModal 
+            imageUrl={useModalStore.getState().currentImageUrl}
+            onEdit={(desc) => console.log('Edit:', desc)}
+          />
+          <FileViewerModal
+            fileName={useModalStore.getState().currentFile?.name || ''}
+            fileContent={useModalStore.getState().currentFile?.content || ''}
+            fileType={useModalStore.getState().currentFile?.type || ''}
+          />
         </>
       )}
     </>
