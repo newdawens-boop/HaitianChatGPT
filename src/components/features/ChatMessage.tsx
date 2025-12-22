@@ -1,5 +1,6 @@
+
 import { Message } from '@/types/chat';
-import { Copy, ThumbsUp, ThumbsDown, Share2, RotateCw, MoreHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Copy, ThumbsUp, ThumbsDown, Share2, RotateCw, MoreHorizontal, ChevronLeft, ChevronRight, Edit2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { MessageActionsMenu } from '../modals/MessageActionsMenu';
@@ -20,7 +21,7 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
   const isUser = message.role === 'user';
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const { isMessageActionsOpen, setMessageActionsOpen } = useModalStore();
-  const { messages, setMessages, currentChatId, setIsLoading } = useChatStore();
+  const { messages, setMessages, currentChatId, setIsLoading, setEditingMessageId } = useChatStore();
   const { user } = useAuth();
   const [isLiked, setIsLiked] = useState(false);
   const [isDisliked, setIsDisliked] = useState(false);
@@ -65,7 +66,13 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
     setMessageActionsOpen(true);
   };
 
-  const handleTryAgain = async () => {
+  const handleEdit = () => {
+    if (isUser) {
+      setEditingMessageId(message.id);
+    }
+  };
+
+  const handleTryAgain = async () => { // <--- This function was misplaced
     if (!currentChatId || !user) return;
 
     // Get the user message that prompted this response
@@ -307,6 +314,13 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
                   title="Copy"
                 >
                   <Copy className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleEdit}
+                  className="p-1.5 hover:bg-accent rounded transition-colors"
+                  title="Edit"
+                >
+                  <Edit2 className="w-4 h-4" />
                 </button>
               </div>
             )}

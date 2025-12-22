@@ -8,6 +8,7 @@ interface ModalState {
   isReportOpen: boolean;
   isMessageActionsOpen: boolean;
   isAttachmentMenuOpen: boolean;
+  isBugReportOpen: boolean;
   setUserMenuOpen: (open: boolean) => void;
   setHelpMenuOpen: (open: boolean) => void;
   setSettingsOpen: (open: boolean) => void;
@@ -15,6 +16,7 @@ interface ModalState {
   setReportOpen: (open: boolean) => void;
   setMessageActionsOpen: (open: boolean) => void;
   setAttachmentMenuOpen: (open: boolean) => void;
+  setBugReportOpen: (open: boolean) => void;
   closeAll: () => void;
 }
 
@@ -26,6 +28,7 @@ export const useModalStore = create<ModalState>((set) => ({
   isReportOpen: false,
   isMessageActionsOpen: false,
   isAttachmentMenuOpen: false,
+  isBugReportOpen: false,
   setUserMenuOpen: (open) => set({ isUserMenuOpen: open }),
   setHelpMenuOpen: (open) => set({ isHelpMenuOpen: open }),
   setSettingsOpen: (open) => set({ isSettingsOpen: open }),
@@ -33,6 +36,7 @@ export const useModalStore = create<ModalState>((set) => ({
   setReportOpen: (open) => set({ isReportOpen: open }),
   setMessageActionsOpen: (open) => set({ isMessageActionsOpen: open }),
   setAttachmentMenuOpen: (open) => set({ isAttachmentMenuOpen: open }),
+  setBugReportOpen: (open) => set({ isBugReportOpen: open }),
   closeAll: () => set({
     isUserMenuOpen: false,
     isHelpMenuOpen: false,
@@ -41,5 +45,6 @@ export const useModalStore = create<ModalState>((set) => ({
     isReportOpen: false,
     isMessageActionsOpen: false,
     isAttachmentMenuOpen: false,
+    isBugReportOpen: false,
   }),
 }));

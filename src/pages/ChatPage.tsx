@@ -2,10 +2,10 @@ import { ChatHeader } from '@/components/features/ChatHeader';
 import { ChatMessage } from '@/components/features/ChatMessage';
 import { ChatInput } from '@/components/features/ChatInput';
 import { useChatStore } from '@/stores/chatStore';
-import { Sparkles } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 export function ChatPage() {
-  const { messages, currentChatId } = useChatStore();
+  const { messages, currentChatId, isLoading, loadingStatus } = useChatStore();
   const showEmptyState = messages.length === 0 && !currentChatId;
 
   return (
@@ -24,6 +24,25 @@ export function ChatPage() {
             {messages.map((message) => (
               <ChatMessage key={message.id} message={message} />
             ))}
+            
+            {/* Loading status */}
+            {isLoading && loadingStatus && (
+              <div className="py-6 px-4 bg-muted/30">
+                <div className="max-w-3xl mx-auto flex gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">HC</span>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="text-sm">{loadingStatus}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

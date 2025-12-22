@@ -2,9 +2,16 @@ import { HelpCircle, FileText, BookOpen, Bug, Download, ChevronRight } from 'luc
 import { useModalStore } from '@/stores/modalStore';
 
 export function HelpMenu() {
-  const { isHelpMenuOpen, setHelpMenuOpen } = useModalStore();
+  const { isHelpMenuOpen, setHelpMenuOpen, setBugReportOpen } = useModalStore();
 
   if (!isHelpMenuOpen) return null;
+
+  const handleItemClick = (label: string) => {
+    if (label === 'Report bug') {
+      setHelpMenuOpen(false);
+      setBugReportOpen(true);
+    }
+  };
 
   const helpItems = [
     { icon: HelpCircle, label: 'Help center', external: true },
@@ -25,6 +32,7 @@ export function HelpMenu() {
           {helpItems.map((item) => (
             <button
               key={item.label}
+              onClick={() => handleItemClick(item.label)}
               className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors text-left"
             >
               <item.icon className="w-5 h-5" />

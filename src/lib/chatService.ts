@@ -54,9 +54,9 @@ export class ChatService {
     return data || [];
   }
 
-  async sendMessage(messages: any[], chatId?: string): Promise<{ message: string; error?: string }> {
+  async sendMessage(messages: any[], chatId?: string, model?: string): Promise<{ message: string; error?: string }> {
     const { data, error } = await supabase.functions.invoke('chat', {
-      body: { messages, chatId },
+      body: { messages, chatId, model },
     });
 
     if (error) {
