@@ -10,6 +10,8 @@ import { VerifyEmailPage } from './pages/VerifyEmailPage';
 import { PublicHomePage } from './pages/PublicHomePage';
 import { UpgradePage } from './pages/UpgradePage';
 import { SharedConversationPage } from './pages/SharedConversationPage';
+import { ProjectsPage } from './pages/ProjectsPage';
+import { ProjectWorkspacePage } from './pages/ProjectWorkspacePage';
 import { UserMenu } from './components/modals/UserMenu';
 import { HelpMenu } from './components/modals/HelpMenu';
 import { SettingsModal } from './components/modals/SettingsModal';
@@ -69,6 +71,22 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <UpgradePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects"
+          element={
+            <ProtectedRoute>
+              <ProjectsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/project/:projectId"
+          element={
+            <ProtectedRoute>
+              <ProjectWorkspacePage />
             </ProtectedRoute>
           }
         />
