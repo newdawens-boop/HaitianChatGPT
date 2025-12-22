@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Upload, Image, Mic } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const EXAMPLE_PROMPTS = [
   "How do I learn a new language effectively?",
@@ -35,11 +36,13 @@ const EXAMPLE_PROMPTS = [
   "How can I be more creative?",
 ];
 
+const MAX_CHARS = 20;
+
 export function PublicHomePage() {
   const navigate = useNavigate();
   const [inputValue, setInputValue] = useState('');
   const [displayedPrompts, setDisplayedPrompts] = useState<string[]>([]);
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     // Randomize and select 10 prompts on mount
@@ -49,19 +52,29 @@ export function PublicHomePage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (value.length <= 20) {
+    if (value.length <= MAX_CHARS) {
       setInputValue(value);
     } else {
-      setShowLoginPrompt(true);
+      setShowLoginModal(true);
+      toast.info('Sign in to send longer messages');
     }
   };
 
-  const handlePromptClick = (prompt: string) => {
-    setShowLoginPrompt(true);
+  const handlePromptClick = () => {
+    setShowLoginModal(true);
+  };
+
+  const handleDisabledFeature = () => {
+    setShowLoginModal(true);
+    toast.info('Sign in to upload files and images');
   };
 
   const handleLoginClick = () => {
     navigate('/login');
+  };
+
+  const handleCloseModal = () => {
+    setShowLoginModal(false);
   };
 
   return (
@@ -92,7 +105,7 @@ export function PublicHomePage() {
           {/* Hero Section */}
           <div className="text-center mb-12 animate-fadeIn">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
-              What's on your mind today?
+              What's on your mind?
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">
               Ask anything, explore ideas, or start a conversation
@@ -101,16 +114,43 @@ export function PublicHomePage() {
 
           {/* Input Section */}
           <div className="relative mb-12">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={handleInputChange}
-              placeholder="Ask anything..."
-              className="w-full px-6 py-4 text-lg rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:border-purple-500 focus:outline-none transition-colors"
-            />
-            {inputValue.length > 15 && (
-              <div className="absolute -bottom-8 right-0 text-sm text-amber-600 dark:text-amber-400">
-                {20 - inputValue.length} characters remaining
+            <div className="relative">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={handleInputChange}
+                placeholder="Ask anything..."
+                className="w-full px-6 py-4 pr-32 text-lg rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:border-purple-500 focus:outline-none transition-colors"
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                <button
+                  onClick={handleDisabledFeature}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors opacity-50 cursor-not-allowed"
+                  title="Sign in to upload files"
+                >
+                  <Upload className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={handleDisabledFeature}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors opacity-50 cursor-not-allowed"
+                  title="Sign in to upload images"
+                >
+                  <Image className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={handleDisabledFeature}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors opacity-50 cursor-not-allowed"
+                  title="Sign in to use voice input"
+                >
+                  <Mic className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            {inputValue.length > 0 && (
+              <div className="absolute -bottom-8 right-0 text-sm text-gray-500 dark:text-gray-400">
+                <span className={inputValue.length >= MAX_CHARS ? 'text-amber-600' : ''}>
+                  {inputValue.length}/{MAX_CHARS} characters
+                </span>
               </div>
             )}
           </div>
@@ -127,7 +167,7 @@ export function PublicHomePage() {
               {displayedPrompts.map((prompt, index) => (
                 <button
                   key={index}
-                  onClick={() => handlePromptClick(prompt)}
+                  onClick={handlePromptClick}
                   className="group p-4 text-left rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-purple-500 hover:shadow-lg transition-all"
                 >
                   <p className="text-gray-700 dark:text-gray-300 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
@@ -140,10 +180,17 @@ export function PublicHomePage() {
         </div>
       </main>
 
-      {/* Login Prompt Modal */}
-      {showLoginPrompt && (
+      {/* Login Modal */}
+      {showLoginModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl relative">
+            <button
+              onClick={handleCloseModal}
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+            >
+              ✕
+            </button>
+            
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Sparkles className="w-8 h-8 text-white" />
@@ -162,7 +209,7 @@ export function PublicHomePage() {
                 Sign in / Sign up
               </button>
               <button
-                onClick={() => setShowLoginPrompt(false)}
+                onClick={handleCloseModal}
                 className="w-full py-3 border border-gray-300 dark:border-gray-600 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 Continue exploring

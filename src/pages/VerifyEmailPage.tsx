@@ -1,49 +1,75 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Mail, Loader2 } from 'lucide-react';
+import { Mail, Phone, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth';
 
 export function VerifyEmailPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { login } = useAuth();
+  
   const email = (location.state as any)?.email || '';
+  const phone = (location.state as any)?.phone || '';
+  const isExisting = (location.state as any)?.isExisting || false;
   
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
 
+  const isPhone = phone !== '';
+
   useEffect(() => {
     // Listen for auth state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        toast.success('Email verified successfully!');
-        navigate('/');
+        toast.success('Successfully verified!');
+        
+        // Map user and login
+        const authUser = {
+          id: session.user.id,
+          email: session.user.email!,
+          username: session.user.user_metadata?.username || 
+                   session.user.user_metadata?.full_name || 
+                   session.user.email!.split('@')[0],
+          avatar: session.user.user_metadata?.avatar_url || 
+                 session.user.user_metadata?.picture,
+        };
+        
+        login(authUser);
+        
+        // Auto-redirect to home
+        setTimeout(() => {
+          navigate('/', { replace: true });
+        }, 500);
       }
     });
 
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, login]);
 
-  const handleResendEmail = async () => {
-    if (!email) {
-      toast.error('Email address not found');
-      return;
-    }
-
+  const handleResend = async () => {
     setIsResending(true);
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email,
-      });
-
-      if (error) throw error;
-      toast.success('Verification email resent!');
+      if (isPhone) {
+        const { error } = await supabase.auth.signInWithOtp({
+          phone: phone,
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.resend({
+          type: 'signup',
+          email: email,
+        });
+        if (error) throw error;
+      }
+      
+      toast.success('Verification code resent!');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to resend email');
+      toast.error(error.message || 'Failed to resend code');
     } finally {
       setIsResending(false);
     }
@@ -59,15 +85,23 @@ export function VerifyEmailPage() {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({
-        email: email,
-        token: code,
-        type: 'email',
-      });
-
-      if (error) throw error;
+      if (isPhone) {
+        const { error } = await supabase.auth.verifyOtp({
+          phone: phone,
+          token: code,
+          type: 'sms',
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.verifyOtp({
+          email: email,
+          token: code,
+          type: 'email',
+        });
+        if (error) throw error;
+      }
       
-      // Auth listener will handle navigation
+      // Auth listener will handle the redirect
     } catch (error: any) {
       toast.error(error.message || 'Invalid verification code');
       setIsLoading(false);
@@ -80,14 +114,18 @@ export function VerifyEmailPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Mail className="w-8 h-8 text-white" />
+            {isPhone ? (
+              <Phone className="w-8 h-8 text-white" />
+            ) : (
+              <Mail className="w-8 h-8 text-white" />
+            )}
           </div>
-          <h1 className="text-2xl font-bold">Check your inbox</h1>
+          <h1 className="text-2xl font-bold">Check your {isPhone ? 'phone' : 'inbox'}</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
             Enter the verification code we just sent to
           </p>
           <p className="text-purple-600 dark:text-purple-400 font-medium mt-1">
-            {email}
+            {email || phone}
           </p>
         </div>
 
@@ -119,11 +157,11 @@ export function VerifyEmailPage() {
 
           <button
             type="button"
-            onClick={handleResendEmail}
+            onClick={handleResend}
             disabled={isResending}
             className="w-full text-purple-600 dark:text-purple-400 hover:underline text-sm font-medium disabled:opacity-50"
           >
-            {isResending ? 'Sending...' : 'Resend email'}
+            {isResending ? 'Sending...' : `Resend ${isPhone ? 'SMS' : 'email'}`}
           </button>
         </form>
 

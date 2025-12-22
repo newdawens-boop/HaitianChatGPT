@@ -8,13 +8,16 @@ export function SignupPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const email = (location.state as any)?.email || '';
+  const phone = (location.state as any)?.phone || '';
   
   const [formData, setFormData] = useState({
-    email: email,
+    identifier: email || phone,
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const isPhone = phone !== '';
 
   // Password validation rules
   const passwordRules = [
@@ -60,18 +63,32 @@ export function SignupPage() {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-        },
-      });
+      if (isPhone) {
+        // Phone signup
+        const { error } = await supabase.auth.signUp({
+          phone: phone,
+          password: formData.password,
+        });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast.success('Verification email sent!');
-      navigate('/verify-email', { state: { email: formData.email } });
+        toast.success('Verification code sent!');
+        navigate('/verify-email', { state: { phone, isExisting: false } });
+      } else {
+        // Email signup
+        const { error } = await supabase.auth.signUp({
+          email: email,
+          password: formData.password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+          },
+        });
+
+        if (error) throw error;
+
+        toast.success('Verification code sent!');
+        navigate('/verify-email', { state: { email, isExisting: false } });
+      }
     } catch (error: any) {
       toast.error(error.message || 'Signup failed');
     } finally {
@@ -97,18 +114,19 @@ export function SignupPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Email */}
+          {/* Email/Phone */}
           <div>
             <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">
-              Email address
+              {isPhone ? 'Phone number' : 'Email address'}
             </label>
             <div className="relative">
               <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                type={isPhone ? 'tel' : 'email'}
+                value={formData.identifier}
+                onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:border-purple-500 focus:outline-none pr-16"
                 required
+                disabled
               />
               <button
                 type="button"

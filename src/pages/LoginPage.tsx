@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { X, Search, ChevronDown, Mail, Phone } from 'lucide-react';
+import { X, Search, ChevronDown } from 'lucide-react';
 import { countries } from '@/constants/countries';
 
 export function LoginPage() {
@@ -18,7 +18,7 @@ export function LoginPage() {
 
   const handleClose = () => {
     setShowModal(false);
-    navigate('/');
+    navigate('/welcome');
   };
 
   const handleGoogleLogin = async () => {
@@ -53,12 +53,20 @@ export function LoginPage() {
       if (checkError) throw checkError;
 
       if (existingUsers && existingUsers.length > 0) {
-        // User exists - go to password login
-        toast.info('Account found! Please enter your password.');
-        // Here you would navigate to a password entry page
-        // For now, we'll use the signup flow
+        // Existing user - send OTP for login
+        const { error } = await supabase.auth.signInWithOtp({
+          email: email,
+          options: {
+            shouldCreateUser: false,
+          },
+        });
+
+        if (error) throw error;
+
+        toast.success('Verification code sent!');
+        navigate('/verify-email', { state: { email, isExisting: true } });
       } else {
-        // New user - go to signup
+        // New user - go to signup (create password)
         navigate('/signup', { state: { email } });
       }
     } catch (error: any) {
@@ -78,14 +86,17 @@ export function LoginPage() {
     try {
       const fullPhone = `${selectedCountry.code}${phoneNumber}`;
       
-      const { error } = await supabase.auth.signInWithOtp({
+      // Check if phone exists (approximation - in real app you'd check database)
+      // For now, we'll always treat it as new signup
+      const { error } = await supabase.auth.signUp({
         phone: fullPhone,
+        password: crypto.randomUUID(), // Temporary password
       });
 
       if (error) throw error;
       
       toast.success('Verification code sent!');
-      navigate('/verify-email', { state: { phone: fullPhone } });
+      navigate('/signup', { state: { phone: fullPhone } });
     } catch (error: any) {
       toast.error(error.message || 'Failed to send code');
     } finally {
@@ -104,7 +115,7 @@ export function LoginPage() {
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-white dark:bg-gray-800 rounded-3xl max-w-md w-full shadow-2xl animate-fadeIn max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between rounded-t-3xl">
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between rounded-t-3xl z-10">
           <div />
           <h2 className="text-xl font-bold">Log in or sign up</h2>
           <button
@@ -159,7 +170,9 @@ export function LoginPage() {
                   onClick={() => setAuthMethod('phone')}
                   className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
                 >
-                  <Phone className="w-5 h-5" />
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                  </svg>
                   Continue with phone
                 </button>
               </div>
