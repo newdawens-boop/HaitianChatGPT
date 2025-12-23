@@ -27,7 +27,6 @@ export function ChatInput() {
     setEditingMessageId,
     updateMessage,
     removeMessagesFrom,
-    selectedModel,
   } = useChatStore();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -159,7 +158,7 @@ export function ChatInput() {
             .slice(0, messageIndex + 1)
             .map((m) => ({ role: m.role, content: m.id === editingMessageId ? input.trim() : m.content }));
 
-          const { message, error } = await chatService.sendMessage(conversationMessages, currentChatId || undefined, selectedModel);
+          const { message, error } = await chatService.sendMessage(conversationMessages, currentChatId || undefined);
 
           if (error) {
             toast.error(error);
@@ -232,7 +231,7 @@ export function ChatInput() {
         { role: 'user', content: userMessage.content },
       ];
 
-      const { message, error } = await chatService.sendMessage(conversationMessages, chatId || undefined, selectedModel);
+      const { message, error } = await chatService.sendMessage(conversationMessages, chatId || undefined);
 
       if (error) {
         toast.error(error);

@@ -54,9 +54,9 @@ export class ChatService {
     return data || [];
   }
 
-  async sendMessage(messages: any[], chatId?: string, model?: string): Promise<{ message: string; generatedImage?: { url: string; prompt: string }; generatedFile?: { name: string; content: string; type: string }; error?: string }> {
+  async sendMessage(messages: any[], chatId?: string): Promise<{ message: string; generatedImage?: { url: string; prompt: string }; generatedFile?: { name: string; content: string; type: string }; error?: string }> {
     const { data, error } = await supabase.functions.invoke('chat', {
-      body: { messages, chatId, model },
+      body: { messages, chatId },
     });
 
     if (error) {
@@ -86,6 +86,17 @@ export class ChatService {
     // Check if the response contains a file creation result
     if (data.generatedFile) {
       result.generatedFile = data.generatedFile;
+      // Don't include raw output in message
+      result.message = '';
+    }
+
+    // Clean any JSON/internal debugging output from the message
+    if (result.message && typeof result.message === 'string') {
+      // Remove JSON blocks that look like internal actions
+      result.message = result.message.replace(/\{\s*"action":[^}]+\}/g, '');
+      result.message = result.message.replace(/\{\s*"thought":[^}]+\}/g, '');
+      result.message = result.message.replace(/\{\s*"action_input":[\s\S]*?\}/g, '');
+      result.message = result.message.trim();
     }
 
     return result;

@@ -5,10 +5,22 @@ import { ImagePlaceholder } from '@/components/features/ImagePlaceholder';
 import { useChatStore } from '@/stores/chatStore';
 import { Loader2 } from 'lucide-react';
 import { chatService } from '@/lib/chatService';
+import { useEffect, useState } from 'react';
 
 export function ChatPage() {
   const { messages, currentChatId, isLoading, loadingStatus } = useChatStore();
   const showEmptyState = messages.length === 0 && !currentChatId;
+  const [showGreeting, setShowGreeting] = useState(false);
+
+  useEffect(() => {
+    // Show greeting after a short delay when page loads
+    if (showEmptyState) {
+      const timer = setTimeout(() => setShowGreeting(true), 500);
+      return () => clearTimeout(timer);
+    } else {
+      setShowGreeting(false);
+    }
+  }, [showEmptyState]);
 
   return (
     <div className="flex flex-col h-screen">
@@ -17,9 +29,21 @@ export function ChatPage() {
       <div className="flex-1 overflow-y-auto">
         {showEmptyState ? (
           <div className="h-full flex flex-col items-center justify-center px-4">
-            <h1 className="text-3xl md:text-4xl font-semibold mb-2 text-center">
-              What are you working on?
-            </h1>
+            {showGreeting && (
+              <div className="mb-8 max-w-2xl">
+                <div className="flex gap-4 py-6">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">HC</span>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-lg">Hi 👋</p>
+                    <p className="text-lg mt-1">Kijan m ka ede w jodi a?</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="pb-32">
