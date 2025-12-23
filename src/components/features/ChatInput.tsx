@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Mic, Plus, ArrowUp, Edit2 } from 'lucide-react';
 import { useChatStore } from '@/stores/chatStore';
+import { useGuestStore } from '@/stores/guestStore';
 import { useAuth } from '@/lib/auth';
 import { chatService } from '@/lib/chatService';
 import { toast } from 'sonner';
@@ -29,9 +30,14 @@ export function ChatInput() {
     removeMessagesFrom,
     selectedModel,
   } = useChatStore();
+  const { isGuestMode, isLimitReached, incrementMessageCount } = useGuestStore();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { setAttachmentMenuOpen } = useModalStore();
+
+  // Disable features for guests
+  const isGuest = isGuestMode || !user;
+  const canSendMessage = !isGuest || !isLimitReached();
 
   // Speech recognition setup
   useEffect(() => {
@@ -51,6 +57,12 @@ export function ChatInput() {
   }, [editingMessageId, messages]);
 
   const handleVoiceInput = async () => {
+    if (isGuest) {
+      toast.error('Voice input is available after logging in');
+      navigate('/auth');
+      return;
+    }
+
     if (isRecording) {
       // Stop recording
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
@@ -98,6 +110,11 @@ export function ChatInput() {
   };
 
   const handleFileSelect = (files: File[]) => {
+    if (isGuest) {
+      toast.error('File uploads are available after logging in');
+      navigate('/auth');
+      return;
+    }
     setSelectedFiles(files);
     toast.success(`${files.length} file(s) attached`);
   };
@@ -128,7 +145,20 @@ export function ChatInput() {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    if (!user) {
+    // Check guest limit
+    if (isGuest && isLimitReached()) {
+      toast.error('Message limit reached. Please log in to continue.');
+      navigate('/auth');
+      return;
+    }
+
+    // Create guest chat if needed
+    if (isGuest && !currentChatId) {
+      const guestChatId = crypto.randomUUID();
+      setCurrentChatId(guestChatId);
+    }
+
+    if (!user && !isGuest) {
       navigate('/auth');
       return;
     }
@@ -222,6 +252,11 @@ export function ChatInput() {
     setInput('');
     setIsLoading(true);
     
+    // Increment guest message count
+    if (isGuest) {
+      incrementMessageCount();
+    }
+    
     // Determine loading status
     const status = determineLoadingStatus(userMessage.content, selectedFiles.length > 0);
     setLoadingStatus(status);
@@ -289,7 +324,7 @@ export function ChatInput() {
               </div>
             )}
 
-            {!editingMessageId && (
+            {!editingMessageId && !isGuest && (
               <button
                 type="button"
                 onClick={() => setAttachmentMenuOpen(true)}
@@ -314,7 +349,7 @@ export function ChatInput() {
               style={{ fieldSizing: 'content' } as any}
             />
 
-            {!editingMessageId && (
+            {!editingMessageId && !isGuest && (
               <button
                 type="button"
                 onClick={handleVoiceInput}
@@ -328,9 +363,9 @@ export function ChatInput() {
 
             <button
               type="submit"
-              disabled={!input.trim() || isLoading}
+              disabled={!input.trim() || isLoading || !canSendMessage}
               className={`flex-shrink-0 p-2.5 rounded-full transition-all ${
-                input.trim() && !isLoading
+                input.trim() && !isLoading && canSendMessage
                   ? 'bg-foreground text-background hover:opacity-90'
                   : 'bg-muted text-muted-foreground cursor-not-allowed'
               }`}

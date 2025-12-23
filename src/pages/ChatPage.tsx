@@ -1,17 +1,36 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ChatHeader } from '@/components/features/ChatHeader';
 import { ChatMessage } from '@/components/features/ChatMessage';
 import { ChatInput } from '@/components/features/ChatInput';
 import { ImagePlaceholder } from '@/components/features/ImagePlaceholder';
+import { GuestLimitModal } from '@/components/modals/GuestLimitModal';
 import { useChatStore } from '@/stores/chatStore';
+import { useGuestStore } from '@/stores/guestStore';
+import { useAuth } from '@/lib/auth';
 import { Loader2 } from 'lucide-react';
 import { chatService } from '@/lib/chatService';
 
 export function ChatPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const { messages, currentChatId, isLoading, loadingStatus } = useChatStore();
+  const { isGuestMode, isLimitReached } = useGuestStore();
+  const [showLimitModal, setShowLimitModal] = useState(false);
   const showEmptyState = messages.length === 0 && !currentChatId;
+
+  // Check guest limit
+  if (isGuestMode && isLimitReached() && !showLimitModal) {
+    setShowLimitModal(true);
+  }
 
   return (
     <div className="flex flex-col h-screen">
+      {/* Guest Limit Modal */}
+      <GuestLimitModal
+        isOpen={showLimitModal}
+        onClose={() => setShowLimitModal(false)}
+      />
       {!showEmptyState && <ChatHeader />}
       
       <div className="flex-1 overflow-y-auto">

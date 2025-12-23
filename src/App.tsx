@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { AuthProvider, useAuth } from './lib/auth';
+import { useGuestStore } from './stores/guestStore';
 import { Sidebar } from './components/layout/Sidebar';
 import { ChatPage } from './pages/ChatPage';
 import { WelcomePage } from './pages/WelcomePage';
@@ -30,6 +31,7 @@ const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const { isGuestMode } = useGuestStore();
   
   if (loading) {
     return (
@@ -39,7 +41,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
   
-  if (!user) {
+  // Allow guest mode or authenticated users
+  if (!user && !isGuestMode) {
     return <Navigate to="/welcome" replace />;
   }
   
