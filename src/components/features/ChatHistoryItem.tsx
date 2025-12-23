@@ -13,9 +13,9 @@ export function ChatHistoryItem({ chat, onClick, onUpdate }: ChatHistoryItemProp
   const isActive = currentChatId === chat.id;
 
   return (
-    <div
+    <button
       onClick={onClick}
-      className={`w-full group flex items-center gap-2 px-3 py-2.5 rounded-lg transition-colors cursor-pointer ${
+      className={`w-full group flex items-center gap-2 px-3 py-2.5 rounded-lg transition-colors text-left ${
         isActive ? 'bg-accent' : 'hover:bg-accent'
       }`}
     >
@@ -28,6 +28,6 @@ export function ChatHistoryItem({ chat, onClick, onUpdate }: ChatHistoryItemProp
       >
         <MoreHorizontal className="w-4 h-4" />
       </button>
-    </div>
+    </button>
   );
 }

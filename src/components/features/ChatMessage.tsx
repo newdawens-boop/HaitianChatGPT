@@ -7,7 +7,9 @@ import { MessageActionsMenu } from '../modals/MessageActionsMenu';
 import { MessageContent } from './MessageContent';
 import { ProjectArtifact } from './ProjectArtifact';
 import { useChatStore } from '@/stores/chatStore';
+import { Message } from '@/types/chat';
 import { useModalStore } from '@/stores/modalStore';
+import { useChatStore } from '@/stores/chatStore';
 import { chatService } from '@/lib/chatService';
 import { useAuth } from '@/lib/auth';
 

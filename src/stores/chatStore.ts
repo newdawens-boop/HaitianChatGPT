@@ -7,6 +7,7 @@ interface ChatState {
   messages: Message[];
   isLoading: boolean;
   isSidebarOpen: boolean;
+  selectedModel: string;
   loadingStatus: string | null;
   editingMessageId: string | null;
   setChats: (chats: Chat[]) => void;
@@ -18,6 +19,7 @@ interface ChatState {
   setIsLoading: (loading: boolean) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
+  setSelectedModel: (model: string) => void;
   setLoadingStatus: (status: string | null) => void;
   setEditingMessageId: (id: string | null) => void;
 }
@@ -28,6 +30,7 @@ export const useChatStore = create<ChatState>((set) => ({
   messages: [],
   isLoading: false,
   isSidebarOpen: false,
+  selectedModel: 'sonnet-4.5',
   loadingStatus: null,
   editingMessageId: null,
   setChats: (chats) => set({ chats }),
@@ -44,6 +47,7 @@ export const useChatStore = create<ChatState>((set) => ({
   setIsLoading: (loading) => set({ isLoading: loading }),
   toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
   setSidebarOpen: (open) => set({ isSidebarOpen: open }),
+  setSelectedModel: (model) => set({ selectedModel: model }),
   setLoadingStatus: (status) => set({ loadingStatus: status }),
   setEditingMessageId: (id) => set({ editingMessageId: id }),
 }));

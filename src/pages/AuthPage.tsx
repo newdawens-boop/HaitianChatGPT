@@ -57,7 +57,7 @@ export function AuthPage() {
         .single();
 
       if (existingUser) {
-        // Existing user - auto-login with magic link (no password, no OTP)
+        // Existing user - send OTP for login
         const { error } = await supabase.auth.signInWithOtp({
           email,
           options: {
@@ -67,8 +67,10 @@ export function AuthPage() {
 
         if (error) throw error;
 
-        toast.success('Check your email for the login link');
-        // User will be auto-logged in when they click the magic link
+        navigate('/verify', {
+          state: { email, type: 'login' },
+        });
+        toast.success('Verification code sent to your email');
       } else {
         // New user - go to password creation
         navigate('/create-password', {

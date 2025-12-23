@@ -22,7 +22,6 @@ import { ReportModal } from './components/modals/ReportModal';
 import { ImageViewerModal } from './components/modals/ImageViewerModal';
 import { ImageEditorModal } from './components/modals/ImageEditorModal';
 import { FileViewerModal } from './components/modals/FileViewerModal';
-import { useModalStore } from './stores/modalStore';
 
 const queryClient = new QueryClient();
 
