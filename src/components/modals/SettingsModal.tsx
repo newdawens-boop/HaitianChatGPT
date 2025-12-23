@@ -9,6 +9,7 @@ import { SecuritySettings } from '../settings/SecuritySettings';
 import { ParentalControlsSettings } from '../settings/ParentalControlsSettings';
 import { OrdersSettings } from '../settings/OrdersSettings';
 import { AIModelSettings } from '../settings/AIModelSettings';
+import { AccountSettings } from '../settings/AccountSettings';
 
 type SettingsTab = 'general' | 'notifications' | 'personalization' | 'ai-model' | 'apps' | 'orders' | 'data' | 'security' | 'parental' | 'account';
 
@@ -80,11 +81,7 @@ export function SettingsModal() {
               Apps settings coming soon
             </div>
           )}
-          {activeTab === 'account' && (
-            <div className="text-center py-12 text-muted-foreground">
-              Account settings coming soon
-            </div>
-          )}
+          {activeTab === 'account' && <AccountSettings />}
         </div>
       </div>
     </>

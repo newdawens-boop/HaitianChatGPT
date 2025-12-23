@@ -13,6 +13,8 @@ import { SharedConversationPage } from './pages/SharedConversationPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { ProjectWorkspacePage } from './pages/ProjectWorkspacePage';
 import { NewProjectPage } from './pages/NewProjectPage';
+import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { ManagePaymentPage } from './pages/ManagePaymentPage';
 import { UserMenu } from './components/modals/UserMenu';
 import { HelpMenu } from './components/modals/HelpMenu';
 import { BugReportModal } from './components/modals/BugReportModal';
@@ -101,6 +103,22 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <ProjectWorkspacePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manage-payment"
+          element={
+            <ProtectedRoute>
+              <ManagePaymentPage />
             </ProtectedRoute>
           }
         />
