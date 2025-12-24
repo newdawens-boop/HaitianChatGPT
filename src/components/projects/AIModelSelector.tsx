@@ -8,11 +8,20 @@ interface AIModelSelectorProps {
   isPro?: boolean;
 }
 
-export function AIModelSelector({ selectedModel, onModelSelect, isPro = false }: AIModelSelectorProps) {
+export function AIModelSelector({
+  selectedModel,
+  onModelSelect,
+  isPro = false,
+}: AIModelSelectorProps) {
   const [showAll, setShowAll] = useState(false);
 
-  const availableModels = isPro ? AI_MODELS : AI_MODELS.filter(m => m.tier === 'free');
-  const displayedModels = showAll ? availableModels : availableModels.slice(0, 3);
+  const availableModels = isPro
+    ? AI_MODELS
+    : AI_MODELS.filter(m => m.tier === 'free');
+
+  const displayedModels = showAll
+    ? availableModels
+    : availableModels.slice(0, 3);
 
   return (
     <div className="space-y-3">
@@ -20,6 +29,7 @@ export function AIModelSelector({ selectedModel, onModelSelect, isPro = false }:
         <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
           Select AI Model
         </h3>
+
         {!isPro && (
           <button className="flex items-center gap-1 text-xs text-purple-600 hover:underline">
             <Crown className="w-3 h-3" />
@@ -29,18 +39,30 @@ export function AIModelSelector({ selectedModel, onModelSelect, isPro = false }:
       </div>
 
       <div className="space-y-2">
-        {displayedModels.map((model) => (
+        {displayedModels.map(model => (
           <button
             key={model.id}
             onClick={() => onModelSelect(model.id)}
             disabled={!isPro && model.tier === 'pro'}
-            className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
-              selectedModel === model.id
-                ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
-            } ${!isPro && model.tier === 'pro' ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left
+              ${
+                selectedModel === model.id
+                  ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
+              }
+              ${
+                !isPro && model.tier === 'pro'
+                  ? 'opacity-50 cursor-not-allowed'
+                  : ''
+              }`}
           >
-            <span className="text-2xl">{model.icon}</span>
+            {/* ✅ LOGO */}
+            <img
+              src={model.logo}
+              alt={model.name}
+              className="w-7 h-7 object-contain"
+            />
+
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <span className="font-medium">{model.name}</span>
@@ -52,6 +74,7 @@ export function AIModelSelector({ selectedModel, onModelSelect, isPro = false }:
                 {model.description}
               </p>
             </div>
+
             {selectedModel === model.id && (
               <Check className="w-5 h-5 text-purple-600" />
             )}
@@ -64,7 +87,9 @@ export function AIModelSelector({ selectedModel, onModelSelect, isPro = false }:
           onClick={() => setShowAll(!showAll)}
           className="w-full py-2 text-sm text-purple-600 hover:underline"
         >
-          {showAll ? 'Show less' : `Show ${availableModels.length - 3} more models`}
+          {showAll
+            ? 'Show less'
+            : `Show ${availableModels.length - 3} more models`}
         </button>
       )}
     </div>
