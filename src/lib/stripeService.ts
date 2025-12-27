@@ -2,6 +2,12 @@ import { supabase } from './supabase';
 import { Subscription, PaymentMethod, Invoice, Plan } from '@/types/subscription';
 import { FunctionsHttpError } from '@supabase/supabase-js';
 
+/**
+ * STRIPE IDS
+ * Product: prod_TedMqtvOncuFAL
+ * Price (Pro / Monthly): price_1ShK60E0VkO7z1VnHAKICksq
+ */
+
 export const PLANS: Plan[] = [
   {
     id: 'free',
@@ -13,7 +19,7 @@ export const PLANS: Plan[] = [
       'Basic projects',
       'Standard support',
     ],
-    stripePriceId: '',
+    stripePriceId: '', // Free → no Stripe checkout
   },
   {
     id: 'pro',
@@ -27,41 +33,48 @@ export const PLANS: Plan[] = [
       'Custom domains',
       'Advanced analytics',
     ],
-    stripePriceId: 'price_1ShK60E0VkO7z1VnHAKICksq', // Replace with actual Stripe price ID
+    stripePriceId: 'price_1ShK60E0VkO7z1VnHAKICksq',
   },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: 100,
-    interval: 'month',
-    features: [
-      'All Pro features',
-      'Dedicated support',
-      'Custom integrations',
-      'SLA guarantee',
-      'Team collaboration',
-    ],
-    stripePriceId: 'price_enterprise_monthly', // Replace with actual Stripe price ID
-  },
+  // ⚠️ Enterprise désactivé tant qu’un vrai price_... n’existe pas
+  // {
+  //   id: 'enterprise',
+  //   name: 'Enterprise',
+  //   price: 100,
+  //   interval: 'month',
+  //   features: [
+  //     'All Pro features',
+  //     'Dedicated support',
+  //     'Custom integrations',
+  //     'SLA guarantee',
+  //     'Team collaboration',
+  //   ],
+  //   stripePriceId: 'price_1XXXXXXXXXXXX',
+  // },
 ];
 
 export class StripeService {
-  async createCheckoutSession(planId: string): Promise<{ url: string; error?: string }> {
+  async createCheckoutSession(
+    planId: string
+  ): Promise<{ url: string; error?: string }> {
     const { data, error } = await supabase.functions.invoke('create-checkout', {
       body: { planId },
     });
 
     if (error) {
       let errorMessage = error.message;
+
       if (error instanceof FunctionsHttpError) {
         try {
           const statusCode = error.context?.status ?? 500;
           const textContent = await error.context?.text();
-          errorMessage = `[Code: ${statusCode}] ${textContent || error.message || 'Unknown error'}`;
+          errorMessage = `[Code: ${statusCode}] ${
+            textContent || error.message || 'Unknown error'
+          }`;
         } catch {
-          errorMessage = `${error.message || 'Failed to create checkout session'}`;
+          errorMessage = error.message || 'Failed to create checkout session';
         }
       }
+
       return { url: '', error: errorMessage };
     }
 
@@ -69,19 +82,25 @@ export class StripeService {
   }
 
   async createBillingPortalSession(): Promise<{ url: string; error?: string }> {
-    const { data, error } = await supabase.functions.invoke('create-portal-session');
+    const { data, error } = await supabase.functions.invoke(
+      'create-portal-session'
+    );
 
     if (error) {
       let errorMessage = error.message;
+
       if (error instanceof FunctionsHttpError) {
         try {
           const statusCode = error.context?.status ?? 500;
           const textContent = await error.context?.text();
-          errorMessage = `[Code: ${statusCode}] ${textContent || error.message || 'Unknown error'}`;
+          errorMessage = `[Code: ${statusCode}] ${
+            textContent || error.message || 'Unknown error'
+          }`;
         } catch {
-          errorMessage = `${error.message || 'Failed to create portal session'}`;
+          errorMessage = error.message || 'Failed to create portal session';
         }
       }
+
       return { url: '', error: errorMessage };
     }
 
@@ -138,15 +157,19 @@ export class StripeService {
 
     if (error) {
       let errorMessage = error.message;
+
       if (error instanceof FunctionsHttpError) {
         try {
           const statusCode = error.context?.status ?? 500;
           const textContent = await error.context?.text();
-          errorMessage = `[Code: ${statusCode}] ${textContent || error.message || 'Unknown error'}`;
+          errorMessage = `[Code: ${statusCode}] ${
+            textContent || error.message || 'Unknown error'
+          }`;
         } catch {
-          errorMessage = `${error.message || 'Failed to cancel subscription'}`;
+          errorMessage = error.message || 'Failed to cancel subscription';
         }
       }
+
       return { success: false, error: errorMessage };
     }
 
