@@ -27,7 +27,7 @@ export const PLANS: Plan[] = [
       'Custom domains',
       'Advanced analytics',
     ],
-    stripePriceId: 'prod_TedMqtvOncuFAL', // Replace with actual Stripe price ID
+    stripePriceId: 'price_1ShK60E0VkO7z1VnHAKICksq', // Replace with actual Stripe price ID
   },
   {
     id: 'enterprise',
