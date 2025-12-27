@@ -16,8 +16,11 @@ export const PLANS: Plan[] = [
     interval: 'month',
     features: [
       '1 AI model (Sonnet 4.5)',
-      'Basic projects',
-      'Standard support',
+      'Up to 2 projects',
+      'Limited AI generations per month',
+      'Community support',
+      'Basic dashboard',
+      'Public projects only',
     ],
     stripePriceId: '', // Free → no Stripe checkout
   },
@@ -29,28 +32,43 @@ export const PLANS: Plan[] = [
     features: [
       '8 AI models',
       'Unlimited projects',
-      'Priority support',
+      'Unlimited AI generations',
+      'Priority email support',
       'Custom domains',
-      'Advanced analytics',
+      'Advanced analytics & usage insights',
+      'Private projects',
+      'Faster response times',
+      'Export projects (JSON / CSV)',
+      'Team collaboration',
     ],
     stripePriceId: 'price_1ShK60E0VkO7z1VnHAKICksq',
   },
-  // ⚠️ Enterprise désactivé tant qu’un vrai price_... n’existe pas
-  // {
-  //   id: 'enterprise',
-  //   name: 'Enterprise',
-  //   price: 100,
-  //   interval: 'month',
-  //   features: [
-  //     'All Pro features',
-  //     'Dedicated support',
-  //     'Custom integrations',
-  //     'SLA guarantee',
-  //     'Team collaboration',
-  //   ],
-  //   stripePriceId: 'price_1XXXXXXXXXXXX',
-  // },
+  {
+    id: 'enterprise',
+    name: 'Enterprise',
+    price: 100,
+    interval: 'month',
+    features: [
+      'All Pro features included',
+      'Unlimited AI models',
+      'Dedicated account manager',
+      '24/7 priority support',
+      'Custom AI integrations',
+      'Team collaboration & roles',
+      'Single Sign-On (SSO)',
+      'SLA uptime guarantee',
+      'Advanced security & compliance',
+      'Custom billing & invoicing',
+      'Priority feature requests',
+      'Custom onboarding & training',
+      'Analytics API access',
+      'Multi-region deployment',
+      'Dedicated infrastructure',
+    ],
+    stripePriceId: 'price_1XXXXXXXXXXXX',
+  },
 ];
+
 
 export class StripeService {
   async createCheckoutSession(
