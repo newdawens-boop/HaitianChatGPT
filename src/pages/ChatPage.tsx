@@ -23,12 +23,33 @@ export function ChatPage() {
   // Chanje mesaj o aza lè konpozan an monte
   useEffect(() => {
     const messagesArray = [
-      "What are you working on?",
-      "Share your thoughts!",
-      "Type something interesting...",
-      "What's happening today?",
-      "Let's get productive!"
-    ];
+  "What are you working on?",
+  "Share your thoughts!",
+  "Type something interesting...",
+  "What's happening today?",
+  "Let's get productive!",
+  "Any ideas you want to explore?",
+  "Tell me something new!",
+  "What's on your mind?",
+  "Start typing your story...",
+  "Share your latest project!",
+  "What are you thinking about?",
+  "Got any goals for today?",
+  "Express yourself here!",
+  "What's your next move?",
+  "Write something amazing!",
+  "Your thoughts matter!",
+  "Start a conversation!",
+  "What's exciting you lately?",
+  "Let's create something!",
+  "Your ideas go here...",
+  "What's inspiring you today?",
+  "Drop a message!",
+  "Let's collaborate!",
+  "What challenge are you facing?",
+  "Time to brainstorm!"
+];
+
     const randomMessage = messagesArray[Math.floor(Math.random() * messagesArray.length)];
     setEmptyMessage(randomMessage);
   }, []); // [] = sèlman lè konpozan monte
