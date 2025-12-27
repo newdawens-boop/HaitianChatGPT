@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChatHeader } from '@/components/features/ChatHeader';
 import { ChatMessage } from '@/components/features/ChatMessage';
@@ -17,7 +17,21 @@ export function ChatPage() {
   const { messages, currentChatId, isLoading, loadingStatus } = useChatStore();
   const { isGuestMode, isLimitReached } = useGuestStore();
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const [emptyMessage, setEmptyMessage] = useState("What are you working on?");
   const showEmptyState = messages.length === 0 && !currentChatId;
+
+  // Chanje mesaj o aza lè konpozan an monte
+  useEffect(() => {
+    const messagesArray = [
+      "What are you working on?",
+      "Share your thoughts!",
+      "Type something interesting...",
+      "What's happening today?",
+      "Let's get productive!"
+    ];
+    const randomMessage = messagesArray[Math.floor(Math.random() * messagesArray.length)];
+    setEmptyMessage(randomMessage);
+  }, []); // [] = sèlman lè konpozan monte
 
   // Check guest limit
   if (isGuestMode && isLimitReached() && !showLimitModal) {
@@ -37,7 +51,7 @@ export function ChatPage() {
         {showEmptyState ? (
           <div className="h-full flex flex-col items-center justify-center px-4">
             <h1 className="text-3xl md:text-4xl font-semibold mb-2 text-center">
-              What are you working on?
+              {emptyMessage}
             </h1>
           </div>
         ) : (
@@ -45,7 +59,7 @@ export function ChatPage() {
             {messages.map((message) => (
               <ChatMessage key={message.id} message={message} />
             ))}
-            
+
             {/* Loading status */}
             {isLoading && loadingStatus && (
               <div className="py-6 px-4 bg-muted/30">
