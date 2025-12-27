@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
 
     // Get price ID from plan mapping
     const priceMap: Record<string, string> = {
-      'pro': 'price_pro_monthly', // Replace with actual Stripe price ID
+      'pro': 'price_1ShK60E0VkO7z1VnHAKICksq', // Replace with actual Stripe price ID
       'enterprise': 'price_enterprise_monthly', // Replace with actual Stripe price ID
     };
 
