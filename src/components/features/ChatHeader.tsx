@@ -22,7 +22,7 @@ export function ChatHeader() {
           </button>
 
           <button className="flex items-center gap-2 px-3 py-1.5 hover:bg-accent rounded-lg transition-colors">
-            <span className="font-semibold">Haitian ChatGPT</span>
+            <span className="font-semibold">Dawinix</span>
             <ChevronDown className="w-4 h-4" />
           </button>
 
