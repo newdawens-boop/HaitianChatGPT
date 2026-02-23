@@ -240,7 +240,7 @@ export function AccountSettings() {
                 <span className="text-white font-bold">HC</span>
               </div>
               <div>
-                <p className="font-medium">HaitianChatGPT</p>
+                <p className="font-medium">Dawinix</p>
                 <p className="text-sm text-muted-foreground">By community builder</p>
               </div>
             </div>
