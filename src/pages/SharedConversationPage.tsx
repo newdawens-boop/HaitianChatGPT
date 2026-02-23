@@ -58,7 +58,7 @@ export function SharedConversationPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">{chat.title}</h1>
           <p className="text-muted-foreground">
-            Shared conversation from Haitian ChatGPT
+            Shared conversation from Dawinix
           </p>
         </div>
 
