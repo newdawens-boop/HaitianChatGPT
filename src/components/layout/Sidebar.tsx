@@ -57,7 +57,7 @@ export function Sidebar() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
               <span className="text-white font-bold text-sm">HC</span>
             </div>
-            <span className="font-semibold">Haitian ChatGPT</span>
+            <span className="font-semibold">Dawinix</span>
           </div>
           <button
             onClick={toggleSidebar}
