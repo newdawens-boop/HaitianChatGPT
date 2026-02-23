@@ -262,6 +262,7 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
                 content={message.content} 
                 attachments={message.attachments as any}
                 generatedImage={message.generatedImage}
+                generatedImages={message.generatedImages}
                 generatedFile={message.generatedFile}
                 onRetryImage={handleRetryImage}
                 onEditImage={handleEditImage}

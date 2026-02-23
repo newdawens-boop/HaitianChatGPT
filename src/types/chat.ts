@@ -19,6 +19,10 @@ export interface Message {
     url: string;
     prompt: string;
   };
+  generatedImages?: Array<{
+    url: string;
+    revised_prompt?: string;
+  }>;
   generatedFile?: {
     name: string;
     content: string;

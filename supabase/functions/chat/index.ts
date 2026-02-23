@@ -30,12 +30,82 @@ Deno.serve(async (req) => {
       }
     }
 
-    const { messages, chatId } = await req.json();
+    const { messages, chatId, mode } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(
         JSON.stringify({ error: 'Messages array is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Detect if user wants image generation
+    const lastUserMessage = messages[messages.length - 1]?.content || '';
+    const imageKeywords = ['create logo', 'make logo', 'design logo', 'generate image', 'create image', 'make image', 'draw', 'create a logo', 'make a logo'];
+    const wantsImage = mode === 'image' || imageKeywords.some(keyword => lastUserMessage.toLowerCase().includes(keyword));
+
+    // Handle image generation
+    if (wantsImage) {
+      const imageResponse = await fetch(`${Deno.env.get('ONSPACE_AI_BASE_URL')}/images/generations`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('ONSPACE_AI_API_KEY')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4.5-vision',
+          prompt: lastUserMessage,
+          n: 2,
+          size: '1024x1024',
+        }),
+      });
+
+      if (!imageResponse.ok) {
+        const errorText = await imageResponse.text();
+        console.error('Image generation error:', errorText);
+        return new Response(
+          JSON.stringify({ error: `Image generation failed: ${errorText}` }),
+          { status: imageResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const imageData = await imageResponse.json();
+      const images = imageData.data || [];
+
+      // Save to database if authenticated
+      if (chatId && user) {
+        const supabaseAdmin = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        );
+
+        await supabaseAdmin.from('messages').insert({
+          chat_id: chatId,
+          role: 'user',
+          content: lastUserMessage,
+        });
+
+        await supabaseAdmin.from('messages').insert({
+          chat_id: chatId,
+          role: 'assistant',
+          content: 'Images created',
+        });
+
+        await supabaseAdmin
+          .from('chats')
+          .update({ updated_at: new Date().toISOString() })
+          .eq('id', chatId);
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          message: 'Images created',
+          images: images.map((img: any) => ({
+            url: img.url,
+            revised_prompt: img.revised_prompt || lastUserMessage,
+          })),
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

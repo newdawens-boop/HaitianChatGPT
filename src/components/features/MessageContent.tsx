@@ -1,7 +1,10 @@
 import { CodeBlock } from './CodeBlock';
 import { GeneratedImage } from './GeneratedImage';
 import { GeneratedFile } from './GeneratedFile';
+import { LinkSafetyModal } from '../modals/LinkSafetyModal';
+import { WebViewModal } from '../modals/WebViewModal';
 import { FileText, Image as ImageIcon, Download } from 'lucide-react';
+import { useState } from 'react';
 
 interface MessageContentProps {
   content: string;
@@ -14,6 +17,10 @@ interface MessageContentProps {
     url: string;
     prompt: string;
   };
+  generatedImages?: Array<{
+    url: string;
+    revised_prompt?: string;
+  }>;
   generatedFile?: {
     name: string;
     content: string;
@@ -26,11 +33,28 @@ interface MessageContentProps {
 export function MessageContent({ 
   content, 
   attachments, 
-  generatedImage, 
+  generatedImage,
+  generatedImages,
   generatedFile,
   onRetryImage,
   onEditImage 
 }: MessageContentProps) {
+  const [linkSafetyOpen, setLinkSafetyOpen] = useState(false);
+  const [webViewOpen, setWebViewOpen] = useState(false);
+  const [selectedUrl, setSelectedUrl] = useState('');
+
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const href = e.currentTarget.href;
+    if (href && !href.startsWith(window.location.origin)) {
+      e.preventDefault();
+      setSelectedUrl(href);
+      setLinkSafetyOpen(true);
+    }
+  };
+
+  const handleOpenLink = (url: string) => {
+    setWebViewOpen(true);
+  };
   // Parse markdown-style code blocks
   const renderContent = (text: string) => {
     const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
@@ -73,26 +97,38 @@ export function MessageContent({
 
   return (
     <div>
-      {renderContent(content)}
-      
-      {/* Generated Image */}
-      {generatedImage && (
-        <GeneratedImage
-          imageUrl={generatedImage.url}
-          prompt={generatedImage.prompt}
-          onRetry={onRetryImage || (() => {})}
-          onEdit={onEditImage || (() => {})}
-        />
+      {/* Generated Images (Multiple) */}
+      {generatedImages && generatedImages.length > 0 && (
+        <div className="mb-4">
+          <GeneratedImage 
+            images={generatedImages}
+            onEditImage={onEditImage}
+          />
+        </div>
+      )}
+
+      {/* Generated Image (Single - Legacy) */}
+      {generatedImage && !generatedImages && (
+        <div className="mb-4">
+          <GeneratedImage 
+            images={[{ url: generatedImage.url, revised_prompt: generatedImage.prompt }]}
+            onEditImage={onEditImage}
+          />
+        </div>
       )}
       
       {/* Generated File */}
       {generatedFile && (
-        <GeneratedFile
-          fileName={generatedFile.name}
-          fileContent={generatedFile.content}
-          fileType={generatedFile.type}
-        />
+        <div className="mb-4">
+          <GeneratedFile
+            fileName={generatedFile.name}
+            fileContent={generatedFile.content}
+            fileType={generatedFile.type}
+          />
+        </div>
       )}
+
+      {content && renderContent(content)}
       
       {attachments && attachments.length > 0 && (
         <div className="mt-3 space-y-2">
@@ -118,6 +154,7 @@ export function MessageContent({
                   href={attachment.url}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={handleLinkClick}
                   className="flex items-center gap-3 p-3 bg-accent rounded-lg hover:bg-accent/80 transition-colors border border-border"
                 >
                   {isPDFType(attachment.type) ? (
@@ -138,6 +175,21 @@ export function MessageContent({
           ))}
         </div>
       )}
+
+      {/* Link Safety Modal */}
+      <LinkSafetyModal
+        isOpen={linkSafetyOpen}
+        onClose={() => setLinkSafetyOpen(false)}
+        url={selectedUrl}
+        onOpenLink={handleOpenLink}
+      />
+
+      {/* Web View Modal */}
+      <WebViewModal
+        isOpen={webViewOpen}
+        onClose={() => setWebViewOpen(false)}
+        url={selectedUrl}
+      />
     </div>
   );
 }

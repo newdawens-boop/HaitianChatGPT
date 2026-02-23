@@ -189,7 +189,16 @@ export function ChatInput() {
             .slice(0, messageIndex + 1)
             .map((m) => ({ role: m.role, content: m.id === editingMessageId ? input.trim() : m.content }));
 
-          const { message, error } = await chatService.sendMessage(conversationMessages, currentChatId || undefined, selectedModel);
+          const isImageRequest = chatService.isImageRequest(input.trim());
+
+          const response = await chatService.sendMessage(
+            conversationMessages, 
+            currentChatId || undefined, 
+            selectedModel,
+            isImageRequest ? 'image' : 'text'
+          );
+
+          const { message, images, error } = response;
 
           if (error) {
             toast.error(error);
@@ -199,8 +208,9 @@ export function ChatInput() {
           const assistantMessage = {
             id: crypto.randomUUID(),
             role: 'assistant' as const,
-            content: message,
+            content: message || 'Images created',
             created_at: new Date().toISOString(),
+            generatedImages: images,
           };
 
           addMessage(assistantMessage);
@@ -267,8 +277,18 @@ export function ChatInput() {
         { role: 'user', content: userMessage.content },
       ];
 
+      // Detect if user wants image generation
+      const isImageRequest = chatService.isImageRequest(userMessage.content);
+
       // Only pass chatId if user is authenticated
-      const { message, error } = await chatService.sendMessage(conversationMessages, user && chatId ? chatId : undefined, selectedModel);
+      const response = await chatService.sendMessage(
+        conversationMessages, 
+        user && chatId ? chatId : undefined, 
+        selectedModel,
+        isImageRequest ? 'image' : 'text'
+      );
+
+      const { message, images, error } = response;
 
       if (error) {
         toast.error(error);
@@ -278,8 +298,9 @@ export function ChatInput() {
       const assistantMessage = {
         id: crypto.randomUUID(),
         role: 'assistant' as const,
-        content: message,
+        content: message || 'Images created',
         created_at: new Date().toISOString(),
+        generatedImages: images,
       };
 
       addMessage(assistantMessage);

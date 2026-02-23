@@ -54,12 +54,12 @@ export class ChatService {
     return data || [];
   }
 
-  async sendMessage(messages: any[], chatId?: string, model?: string): Promise<{ message: string; generatedImage?: { url: string; prompt: string }; generatedFile?: { name: string; content: string; type: string }; error?: string }> {
+  async sendMessage(messages: any[], chatId?: string, model?: string, mode?: 'text' | 'image'): Promise<{ message: string; images?: Array<{ url: string; revised_prompt?: string }>; generatedImage?: { url: string; prompt: string }; generatedFile?: { name: string; content: string; type: string }; error?: string }> {
     // Get the current session to pass the auth token (optional for guest users)
     const { data: { session } } = await supabase.auth.getSession();
     
     const { data, error } = await supabase.functions.invoke('chat', {
-      body: { messages, chatId, model },
+      body: { messages, chatId, model, mode },
       headers: session?.access_token ? {
         Authorization: `Bearer ${session.access_token}`,
       } : {},
@@ -81,6 +81,12 @@ export class ChatService {
 
     // Parse response for special content types
     let result: any = { message: data.message };
+
+    // Check if the response contains multiple images
+    if (data.images && Array.isArray(data.images)) {
+      result.images = data.images;
+      result.message = data.message || 'Images created';
+    }
 
     // Check if the response contains an image generation result
     if (data.generatedImage) {
