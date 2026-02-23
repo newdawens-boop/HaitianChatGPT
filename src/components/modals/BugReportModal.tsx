@@ -69,7 +69,7 @@ export function BugReportModal() {
           </div>
 
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            Any information you share may be reviewed to help improve Haitian ChatGPT. If you have additional questions,{' '}
+            Any information you share may be reviewed to help improve Dawinix. If you have additional questions,{' '}
             <button className="text-blue-600 dark:text-blue-400 hover:underline">
               contact support
             </button>
