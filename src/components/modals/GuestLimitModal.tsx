@@ -25,7 +25,7 @@ export function GuestLimitModal({ isOpen, onClose }: GuestLimitModalProps) {
       <div className="bg-background rounded-2xl shadow-2xl max-w-md w-full p-8">
         <h2 className="text-2xl font-bold text-center mb-3">Message limit reached</h2>
         <p className="text-center text-muted-foreground mb-6">
-          You've reached the 10-message limit for guest mode. Log in or sign up to continue chatting.
+          You've reached the 25-message limit for guest mode. Log in or sign up to continue chatting.
         </p>
 
         <div className="space-y-3">

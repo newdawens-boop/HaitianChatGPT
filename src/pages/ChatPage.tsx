@@ -5,6 +5,7 @@ import { ChatMessage } from '@/components/features/ChatMessage';
 import { ChatInput } from '@/components/features/ChatInput';
 import { ImagePlaceholder } from '@/components/features/ImagePlaceholder';
 import { GuestLimitModal } from '@/components/modals/GuestLimitModal';
+import { WelcomeModal } from '@/components/modals/WelcomeModal';
 import { useChatStore } from '@/stores/chatStore';
 import { useGuestStore } from '@/stores/guestStore';
 import { useAuth } from '@/lib/auth';
@@ -15,10 +16,18 @@ export function ChatPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { messages, currentChatId, isLoading, loadingStatus } = useChatStore();
-  const { isGuestMode, isLimitReached } = useGuestStore();
+  const { isGuestMode, isLimitReached, hasSeenWelcome } = useGuestStore();
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [emptyMessage, setEmptyMessage] = useState("What are you working on?");
   const showEmptyState = messages.length === 0 && !currentChatId;
+
+  // Show welcome modal on first visit if not logged in
+  useEffect(() => {
+    if (!user && !hasSeenWelcome) {
+      setShowWelcomeModal(true);
+    }
+  }, [user, hasSeenWelcome]);
 
   // Chanje mesaj o aza lè konpozan an monte
   useEffect(() => {
@@ -61,6 +70,12 @@ export function ChatPage() {
 
   return (
     <div className="flex flex-col h-screen">
+      {/* Welcome Modal */}
+      <WelcomeModal
+        isOpen={showWelcomeModal}
+        onClose={() => setShowWelcomeModal(false)}
+      />
+      
       {/* Guest Limit Modal */}
       <GuestLimitModal
         isOpen={showLimitModal}

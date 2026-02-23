@@ -234,9 +234,9 @@ export function ChatInput() {
       })),
     };
 
-    // Create new chat if needed
+    // Create new chat if needed (only for authenticated users)
     let chatId = currentChatId;
-    if (!chatId) {
+    if (!chatId && user) {
       const newChat = await chatService.createChat(input.trim().slice(0, 50), user.id, true);
       if (newChat) {
         chatId = newChat.id;
@@ -267,7 +267,8 @@ export function ChatInput() {
         { role: 'user', content: userMessage.content },
       ];
 
-      const { message, error } = await chatService.sendMessage(conversationMessages, chatId || undefined, selectedModel);
+      // Only pass chatId if user is authenticated
+      const { message, error } = await chatService.sendMessage(conversationMessages, user && chatId ? chatId : undefined, selectedModel);
 
       if (error) {
         toast.error(error);
@@ -283,8 +284,8 @@ export function ChatInput() {
 
       addMessage(assistantMessage);
 
-      // Reload messages from database to ensure sync
-      if (chatId) {
+      // Reload messages from database to ensure sync (only for authenticated users)
+      if (user && chatId) {
         const updatedMessages = await chatService.getChatMessages(chatId);
         setMessages(updatedMessages);
       }

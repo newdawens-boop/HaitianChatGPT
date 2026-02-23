@@ -17,16 +17,16 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    // Get user from JWT token
+    // Get user from JWT token (optional - allow anonymous users)
     const authHeader = req.headers.get('Authorization');
     const token = authHeader?.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
-
-    if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    let user = null;
+    
+    if (token) {
+      const { data: { user: authUser }, error: userError } = await supabaseClient.auth.getUser(token);
+      if (!userError && authUser) {
+        user = authUser;
+      }
     }
 
     const { messages, chatId } = await req.json();
@@ -64,8 +64,8 @@ Deno.serve(async (req) => {
     const aiData = await aiResponse.json();
     const assistantMessage = aiData.choices[0].message.content;
 
-    // Save messages to database if chatId is provided
-    if (chatId) {
+    // Save messages to database if chatId is provided and user is authenticated
+    if (chatId && user) {
       const supabaseAdmin = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
