@@ -100,7 +100,7 @@ export function WelcomePage() {
           <Menu className="w-6 h-6" />
         </button>
         
-        <h1 className="text-xl font-semibold">Haitian ChatGPT</h1>
+        <h1 className="text-xl font-semibold">Dawinix</h1>
         
         <div className="flex items-center gap-2">
           <button
@@ -204,7 +204,7 @@ export function WelcomePage() {
 
           <div className="mt-3 text-center">
             <p className="text-xs text-muted-foreground">
-              Haitian ChatGPT can make mistakes. Check important info. {20 - messageCount} messages left.
+              Dawinix can make mistakes. Check important info. {20 - messageCount} messages left.
             </p>
           </div>
         </div>
