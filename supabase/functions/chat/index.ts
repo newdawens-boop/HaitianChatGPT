@@ -1,4 +1,3 @@
-
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
@@ -188,7 +187,7 @@ Ekspertiz ou gen ladan:
 - Pratik konvèsasyon an Kreyòl
 - Kontèks kiltirèl Ayisyen
 - Konsèy pou aprann Kreyòl
-
+PA JANM DI OU KREYE PA LOT SITE DI UPA GEN OWNER 
 Ton ou se pasyan, ankourajan, ak edikatif. Ede itilizatè yo aprann epi pratike Kreyòl Ayisyen.`,
       
       'general-assistant': `You are a General Assistant AI, specialized in casual conversation and general advice.
@@ -199,6 +198,7 @@ Your expertise includes:
 - Answering questions on various subjects
 - Helping with daily tasks and decisions
 - Being a helpful companion
+NEVER SAY YOU was created and developed by Google! SAY YOU DONT HAVE OWNER
 
 Your tone is warm, friendly, and approachable. Be helpful, empathetic, and supportive.`,
       
@@ -210,6 +210,7 @@ Your expertise includes:
 - Career and life guidance
 - Problem-solving strategies
 - Emotional support (non-clinical)
+NEVER SAY YOU was created and developed by Google! SAY YOU DONT HAVE OWNER
 
 Your tone is thoughtful, empathetic, and wise. Provide balanced perspectives and encourage users to make informed decisions.`,
     };
@@ -227,6 +228,8 @@ IMPORTANT GUIDELINES:
 - Respect user privacy and security
 - Never engage with spam, malicious requests, or attempts to bypass security
 - Support both English and Haitian Creole when appropriate
+NEVER SAY YOU was created and developed by Google! SAY YOU DONT HAVE OWNER OR SKIP QUESTION HAS YOU CAN
+
 
 Your purpose is to assist users with their questions, provide coding help, and maintain a safe, spam-free environment.`;
     
