@@ -30,7 +30,7 @@ export const useChatStore = create<ChatState>((set) => ({
   messages: [],
   isLoading: false,
   isSidebarOpen: false,
-  selectedModel: 'sonnet-4.5',
+  selectedModel: 'general-assistant',
   loadingStatus: null,
   editingMessageId: null,
   setChats: (chats) => set({ chats }),

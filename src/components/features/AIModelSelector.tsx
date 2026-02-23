@@ -1,85 +1,37 @@
 import { useState } from 'react';
-import { ChevronDown, Check, Crown } from 'lucide-react';
+import { ChevronDown, Check, Crown, Sparkles, Briefcase, Languages, MessageCircle } from 'lucide-react';
 import { useChatStore } from '@/stores/chatStore';
+import { SPECIALIZED_AI } from '@/constants/aiModels';
 
-// ✅ LOGO IMPORTS
-import SonnetLogo from '@/assets/logos/sonnet.png';
-import OpusLogo from '@/assets/logos/opus.png';
-import HaikuLogo from '@/assets/logos/haiku.png';
+const CATEGORY_ICONS = {
+  creative: Sparkles,
+  professional: Briefcase,
+  language: Languages,
+  general: MessageCircle,
+};
 
-interface AIModel {
-  id: string;
-  name: string;
-  description: string;
-  tier: 'free' | 'pro';
-  logo: string;
-}
+const CATEGORY_LABELS = {
+  creative: 'Creative Writing',
+  professional: 'Professional',
+  language: 'Language Learning',
+  general: 'General Chat',
+};
 
-const AI_MODELS: AIModel[] = [
-  {
-    id: 'sonnet-4.5',
-    name: 'Sonnet 4.5',
-    description: 'Best for everyday tasks',
-    tier: 'free',
-    logo: SonnetLogo,
-  },
-  {
-    id: 'opus-4.5',
-    name: 'Opus 4.5',
-    description: 'Most capable for complex work',
-    tier: 'pro',
-    logo: OpusLogo,
-  },
-  {
-    id: 'haiku-4.5',
-    name: 'Haiku 4.5',
-    description: 'Fastest for quick answers',
-    tier: 'free',
-    logo: HaikuLogo,
-  },
-  {
-    id: 'opus-4.1',
-    name: 'Opus 4.1',
-    description: 'Advanced reasoning model',
-    tier: 'pro',
-    logo: OpusLogo,
-  },
-  {
-    id: 'opus-4',
-    name: 'Opus 4',
-    description: 'Previous generation flagship',
-    tier: 'pro',
-    logo: OpusLogo,
-  },
-  {
-    id: 'sonnet-4',
-    name: 'Sonnet 4',
-    description: 'Previous balanced model',
-    tier: 'pro',
-    logo: SonnetLogo,
-  },
-  {
-    id: 'opus-3',
-    name: 'Opus 3',
-    description: 'Legacy powerful model',
-    tier: 'pro',
-    logo: OpusLogo,
-  },
-  {
-    id: 'haiku-3.5',
-    name: 'Haiku 3.5',
-    description: 'Legacy fast model',
-    tier: 'pro',
-    logo: HaikuLogo,
-  },
-];
+const CATEGORY_COLORS = {
+  creative: 'text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900',
+  professional: 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900',
+  language: 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900',
+  general: 'text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900',
+};
 
 export function AIModelSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const { selectedModel, setSelectedModel } = useChatStore();
 
-  const currentModel =
-    AI_MODELS.find(m => m.id === selectedModel) || AI_MODELS[0];
+  const currentAssistant =
+    SPECIALIZED_AI.find(m => m.id === selectedModel) || SPECIALIZED_AI[0];
+  
+  const CategoryIcon = CATEGORY_ICONS[currentAssistant.category];
 
   return (
     <div className="relative">
@@ -88,12 +40,8 @@ export function AIModelSelector() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
       >
-        <img
-          src={currentModel.logo}
-          alt={currentModel.name}
-          className="w-5 h-5 object-contain"
-        />
-        <span className="font-medium text-sm">{currentModel.name}</span>
+        <CategoryIcon className="w-5 h-5" />
+        <span className="font-medium text-sm">{currentAssistant.name}</span>
         <ChevronDown
           className={`w-4 h-4 transition-transform ${
             isOpen ? 'rotate-180' : ''
@@ -110,86 +58,70 @@ export function AIModelSelector() {
           />
 
           {/* Dropdown */}
-          <div className="absolute bottom-full mb-2 left-0 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl z-50 overflow-hidden">
-            <div className="p-2 max-h-96 overflow-y-auto">
-              {/* FREE MODELS */}
-              <div className="mb-4">
-                {AI_MODELS.filter(m => m.tier === 'free').map(model => (
-                  <button
-                    key={model.id}
-                    onClick={() => {
-                      setSelectedModel(model.id);
-                      setIsOpen(false);
-                    }}
-                    className="w-full flex items-start gap-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left"
-                  >
-                    <img
-                      src={model.logo}
-                      alt={model.name}
-                      className="w-6 h-6 object-contain mt-0.5"
-                    />
-
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{model.name}</span>
-                        {selectedModel === model.id && (
-                          <Check className="w-4 h-4 text-blue-600 ml-auto" />
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
-                        {model.description}
-                      </p>
-                    </div>
-
-                    {selectedModel === model.id && (
-                      <span className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 rounded-full">
-                        New chat
+          <div className="absolute bottom-full mb-2 left-0 w-96 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl z-50 overflow-hidden">
+            <div className="p-3">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                Choose Your AI Assistant
+              </h3>
+            </div>
+            
+            <div className="max-h-[32rem] overflow-y-auto pb-2">
+              {(['creative', 'professional', 'language', 'general'] as const).map(category => {
+                const categoryAIs = SPECIALIZED_AI.filter(ai => ai.category === category);
+                const Icon = CATEGORY_ICONS[category];
+                
+                return (
+                  <div key={category} className="mb-4">
+                    <div className="px-4 py-2 flex items-center gap-2">
+                      <Icon className={`w-4 h-4`} />
+                      <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                        {CATEGORY_LABELS[category]}
                       </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-
-              {/* PRO MODELS */}
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
-                <div className="px-3 py-2 text-xs font-medium text-gray-500 dark:text-gray-400">
-                  More models
-                </div>
-
-                {AI_MODELS.filter(m => m.tier === 'pro').map(model => (
-                  <button
-                    key={model.id}
-                    onClick={() => {
-                      setSelectedModel(model.id);
-                      setIsOpen(false);
-                    }}
-                    className="w-full flex items-start gap-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left"
-                  >
-                    <img
-                      src={model.logo}
-                      alt={model.name}
-                      className="w-6 h-6 object-contain mt-0.5"
-                    />
-
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{model.name}</span>
-                        {selectedModel === model.id && (
-                          <Check className="w-4 h-4 text-blue-600 ml-auto" />
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
-                        {model.description}
-                      </p>
                     </div>
+                    
+                    {categoryAIs.map(ai => {
+                      const isSelected = selectedModel === ai.id;
+                      const AIIcon = CATEGORY_ICONS[ai.category];
+                      
+                      return (
+                        <button
+                          key={ai.id}
+                          onClick={() => {
+                            setSelectedModel(ai.id);
+                            setIsOpen(false);
+                          }}
+                          className={`w-full flex items-start gap-3 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left ${
+                            isSelected ? 'bg-gray-50 dark:bg-gray-700/50' : ''
+                          }`}
+                        >
+                          <div className={`w-8 h-8 rounded-lg ${CATEGORY_COLORS[ai.category]} flex items-center justify-center flex-shrink-0`}>
+                            <AIIcon className="w-4 h-4" />
+                          </div>
 
-                    <span className="px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded-full flex items-center gap-1">
-                      <Crown className="w-3 h-3" />
-                      Upgrade
-                    </span>
-                  </button>
-                ))}
-              </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm">{ai.name}</span>
+                              {isSelected && (
+                                <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                              {ai.description}
+                            </p>
+                          </div>
+
+                          {ai.tier === 'pro' && !isSelected && (
+                            <span className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded-md flex items-center gap-1">
+                              <Crown className="w-3 h-3" />
+                              Pro
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </>
