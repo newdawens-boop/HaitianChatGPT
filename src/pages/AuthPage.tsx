@@ -349,3 +349,4 @@ export function AuthPage() {
     </div>
   );
 }
+the blanc screen still show for now put apple login and emaol and google remove all other method login
