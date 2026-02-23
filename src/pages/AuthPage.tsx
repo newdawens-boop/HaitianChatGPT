@@ -3,35 +3,27 @@ import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { COUNTRIES } from '@/constants/countries';
 
-type AuthMethod = 'email' | 'phone' | 'oauth';
-type OAuthProvider = 'google' | 'apple' | 'microsoft';
+type AuthMethod = 'email' | 'oauth';
+type OAuthProvider = 'google' | 'apple';
 
 export function AuthPage() {
   const navigate = useNavigate();
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [countryCode, setCountryCode] = useState('+1');
-  const [showCountrySelector, setShowCountrySelector] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleOAuthLogin = async (provider: OAuthProvider) => {
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: provider === 'microsoft' ? 'azure' : provider,
-        options: {
-          redirectTo: window.location.origin,
-        },
-      });
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
 
-      if (error) throw error;
-    } catch (error: any) {
+    if (error) {
       console.error('OAuth error:', error);
       toast.error(error.message || 'OAuth login failed');
-      setLoading(false);
     }
   };
 
@@ -85,52 +77,6 @@ export function AuthPage() {
     }
   };
 
-  const handlePhoneContinue = async () => {
-    if (!phone) {
-      toast.error('Please enter your phone number');
-      return;
-    }
-
-    const fullPhone = `${countryCode}${phone}`;
-    setLoading(true);
-
-    try {
-      // Check if user exists
-      const { data: existingUser } = await supabase
-        .from('user_profiles')
-        .select('email')
-        .ilike('email', `%${phone}%`)
-        .single();
-
-      if (existingUser) {
-        // Existing user - send SMS OTP
-        const { error } = await supabase.auth.signInWithOtp({
-          phone: fullPhone,
-          options: {
-            shouldCreateUser: false,
-          },
-        });
-
-        if (error) throw error;
-
-        navigate('/verify', {
-          state: { phone: fullPhone, type: 'login' },
-        });
-        toast.success('Verification code sent via SMS');
-      } else {
-        // New user - go to password creation
-        navigate('/create-password', {
-          state: { phone: fullPhone, method: 'phone' },
-        });
-      }
-    } catch (error: any) {
-      console.error('Phone error:', error);
-      toast.error(error.message || 'Failed to process phone number');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   if (authMethod === 'email') {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4">
@@ -164,79 +110,6 @@ export function AuthPage() {
             <button
               onClick={handleEmailContinue}
               disabled={loading || !email}
-              className="w-full py-3 bg-black dark:bg-white text-white dark:text-black rounded-full font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Processing...' : 'Continue'}
-            </button>
-          </div>
-
-          <div className="mt-8 text-center text-xs text-gray-500">
-            <a href="#" className="hover:underline">Terms of Use</a>
-            {' | '}
-            <a href="#" className="hover:underline">Privacy Policy</a>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (authMethod === 'phone') {
-    return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <button
-              onClick={() => setAuthMethod(null)}
-              className="mb-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            <h1 className="text-3xl font-bold mb-2">Log in or sign up</h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              You'll get smarter responses and can upload files, images, and more.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <div className="relative">
-              <label className="block text-sm text-gray-500 mb-2">Phone number</label>
-              <button
-                onClick={() => setShowCountrySelector(!showCountrySelector)}
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-left flex items-center justify-between mb-2"
-              >
-                <span>{COUNTRIES.find(c => c.code === countryCode)?.name || 'Select country'} {countryCode}</span>
-                <span>▼</span>
-              </button>
-
-              {showCountrySelector && (
-                <div className="absolute z-10 w-full max-h-64 overflow-y-auto bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-700 rounded-xl shadow-lg">
-                  {COUNTRIES.map((country) => (
-                    <button
-                      key={country.code}
-                      onClick={() => {
-                        setCountryCode(country.code);
-                        setShowCountrySelector(false);
-                      }}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      {country.name} {country.code}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                placeholder="Phone number"
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:border-purple-500"
-              />
-            </div>
-
-            <button
-              onClick={handlePhoneContinue}
-              disabled={loading || !phone}
               className="w-full py-3 bg-black dark:bg-white text-white dark:text-black rounded-full font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Processing...' : 'Continue'}
@@ -296,30 +169,6 @@ export function AuthPage() {
             Continue with Apple
           </button>
 
-          <button
-            onClick={() => handleOAuthLogin('microsoft')}
-            disabled={loading}
-            className="w-full px-6 py-3 rounded-full border-2 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-3 font-medium disabled:opacity-50"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path fill="#F25022" d="M1 1h10v10H1z"/>
-              <path fill="#00A4EF" d="M13 1h10v10H13z"/>
-              <path fill="#7FBA00" d="M1 13h10v10H1z"/>
-              <path fill="#FFB900" d="M13 13h10v10H13z"/>
-            </svg>
-            Continue with Microsoft
-          </button>
-
-          <button
-            onClick={() => setAuthMethod('phone')}
-            className="w-full px-6 py-3 rounded-full border-2 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-3 font-medium"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-            </svg>
-            Continue with phone
-          </button>
-
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
@@ -349,4 +198,3 @@ export function AuthPage() {
     </div>
   );
 }
-the blanc screen still show for now put apple login and emaol and google remove all other method login
