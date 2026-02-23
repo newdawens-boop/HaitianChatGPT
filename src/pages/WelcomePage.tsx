@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Plus, Phone, Settings, ArrowUp } from 'lucide-react';
+import { Menu, Plus, Mic, ArrowUp } from 'lucide-react';
 import { useModalStore } from '@/stores/modalStore';
 import { useGuestStore } from '@/stores/guestStore';
+import { useAuthStore } from '@/lib/auth';
 import { WelcomeModal } from '@/components/modals/WelcomeModal';
+import { AttachmentModal } from '@/components/modals/AttachmentModal';
 import { ChatMessage } from '@/components/features/ChatMessage';
 import { Message } from '@/types/chat';
 import { chatService } from '@/lib/chatService';
@@ -11,9 +13,11 @@ import { toast } from 'sonner';
 
 export function WelcomePage() {
   const navigate = useNavigate();
-  const { openUserMenu, setAttachmentMenuOpen } = useModalStore();
+  const { setUserMenuOpen } = useModalStore();
+  const { user } = useAuthStore();
   const { hasSeenWelcome, setHasSeenWelcome, messageCount, incrementMessageCount, isLimitReached } = useGuestStore();
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showAttachmentModal, setShowAttachmentModal] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -76,8 +80,12 @@ export function WelcomePage() {
   };
 
   const handleVoiceCall = () => {
-    toast.info('Connecting to voice mode...');
     navigate('/voice');
+  };
+
+  const handlePickMedia = (files: File[]) => {
+    console.log('Selected files:', files);
+    toast.success(`Selected ${files.length} file(s)`);
   };
 
   return (
@@ -91,31 +99,48 @@ export function WelcomePage() {
         }}
       />
 
+      {/* Attachment Modal */}
+      <AttachmentModal
+        isOpen={showAttachmentModal}
+        onClose={() => setShowAttachmentModal(false)}
+        onPickMedia={handlePickMedia}
+      />
+
       {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b border-border">
+      <header className="flex items-center justify-between px-4 py-3 border-b border-border/40">
         <button
-          onClick={openUserMenu}
-          className="p-2 hover:bg-accent rounded-lg transition-colors"
+          onClick={() => navigate('/chat')}
+          className="p-2 hover:bg-accent/50 rounded-lg transition-colors"
+          aria-label="Menu"
         >
-          <Menu className="w-6 h-6" />
+          <Menu className="w-5 h-5" />
         </button>
         
-        <h1 className="text-xl font-semibold">Dawinix</h1>
+        <button
+          onClick={() => setUserMenuOpen(true)}
+          className="flex items-center gap-2 px-3 py-1.5 hover:bg-accent/50 rounded-lg transition-colors"
+        >
+          <span className="text-sm font-medium">{user?.username || 'Dawinix'}</span>
+        </button>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <button
-            onClick={handleVoiceCall}
-            className="p-2 hover:bg-accent rounded-full transition-colors"
-            title="Voice call"
+            className="p-2 hover:bg-accent/50 rounded-lg transition-colors opacity-40 cursor-not-allowed"
+            disabled
+            title="Coming soon"
           >
-            <Phone className="w-5 h-5" />
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
           </button>
           <button
-            onClick={() => navigate('/settings')}
-            className="p-2 hover:bg-accent rounded-full transition-colors"
-            title="Settings"
+            className="p-2 hover:bg-accent/50 rounded-lg transition-colors opacity-40 cursor-not-allowed"
+            disabled
+            title="Coming soon"
           >
-            <Settings className="w-5 h-5" />
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
           </button>
         </div>
       </header>
@@ -124,14 +149,9 @@ export function WelcomePage() {
       <main className="flex-1 overflow-y-auto">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full px-4">
-            <div className="text-center space-y-4 max-w-md">
-              <h2 className="text-3xl md:text-4xl font-medium text-muted-foreground">
-                Ready when you are.
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {20 - messageCount} free messages remaining
-              </p>
-            </div>
+            <h2 className="text-4xl md:text-5xl font-normal text-foreground/80">
+              Ready when you are.
+            </h2>
           </div>
         ) : (
           <div className="space-y-4">
@@ -161,14 +181,15 @@ export function WelcomePage() {
       </main>
 
       {/* Input Area */}
-      <div className="sticky bottom-0 bg-background border-t border-border">
-        <div className="max-w-3xl mx-auto px-4 py-4">
+      <div className="sticky bottom-0 bg-background">
+        <div className="max-w-3xl mx-auto px-4 py-6">
           <form onSubmit={handleSubmit} className="relative">
-            <div className="flex items-end gap-2 bg-card border border-border rounded-3xl shadow-lg p-2">
+            <div className="flex items-end gap-2 bg-card border border-border/60 rounded-[26px] shadow-sm hover:shadow-md transition-shadow p-2">
               <button
                 type="button"
-                onClick={() => setAttachmentMenuOpen(true)}
-                className="flex-shrink-0 p-2.5 hover:bg-accent rounded-full transition-colors"
+                onClick={() => setShowAttachmentModal(true)}
+                className="flex-shrink-0 p-2.5 hover:bg-accent/80 rounded-full transition-colors"
+                aria-label="Attach file"
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -184,18 +205,28 @@ export function WelcomePage() {
                 }}
                 placeholder="Ask anything"
                 rows={1}
-                className="flex-1 resize-none bg-transparent outline-none py-2.5 px-2 max-h-[200px] scrollbar-hide"
+                className="flex-1 resize-none bg-transparent outline-none py-2.5 px-2 max-h-[200px] scrollbar-hide text-[15px]"
                 style={{ fieldSizing: 'content' } as any}
               />
 
               <button
+                type="button"
+                onClick={handleVoiceCall}
+                className="flex-shrink-0 p-2.5 hover:bg-accent/80 rounded-full transition-colors"
+                aria-label="Voice input"
+              >
+                <Mic className="w-5 h-5" />
+              </button>
+
+              <button
                 type="submit"
-                disabled={!input.trim() || isLoading || isLimitReached()}
+                disabled={!input.trim() || isLoading || (!user && isLimitReached())}
                 className={`flex-shrink-0 p-2.5 rounded-full transition-all ${
-                  input.trim() && !isLoading && !isLimitReached()
+                  input.trim() && !isLoading && (user || !isLimitReached())
                     ? 'bg-foreground text-background hover:opacity-90'
                     : 'bg-muted text-muted-foreground cursor-not-allowed'
                 }`}
+                aria-label="Send message"
               >
                 <ArrowUp className="w-5 h-5" />
               </button>
@@ -204,7 +235,8 @@ export function WelcomePage() {
 
           <div className="mt-3 text-center">
             <p className="text-xs text-muted-foreground">
-              Dawinix can make mistakes. Check important info. {20 - messageCount} messages left.
+              {!user && `${20 - messageCount} free messages remaining. `}
+              Dawinix can make mistakes. Check important info.
             </p>
           </div>
         </div>
