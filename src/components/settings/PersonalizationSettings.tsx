@@ -71,7 +71,7 @@ export function PersonalizationSettings() {
           </select>
         </div>
         <p className="text-sm text-muted-foreground">
-          Set the style and tone of how Haitian ChatGPT responds to you. This doesn't impact Haitian ChatGPT's capabilities.
+          Set the style and tone of how Dawinix responds to you. This doesn't impact Haitian ChatGPT's capabilities.
         </p>
       </div>
 
@@ -205,7 +205,7 @@ export function PersonalizationSettings() {
           <div className="flex items-center justify-between">
             <div>
               <div className="font-medium">Reference saved memories</div>
-              <div className="text-sm text-muted-foreground">Let Haitian ChatGPT save and use memories when responding</div>
+              <div className="text-sm text-muted-foreground">Let Dawinix save and use memories when responding</div>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -221,7 +221,7 @@ export function PersonalizationSettings() {
           <div className="flex items-center justify-between">
             <div>
               <div className="font-medium">Reference chat history</div>
-              <div className="text-sm text-muted-foreground">Let Haitian ChatGPT reference recent conversations when responding</div>
+              <div className="text-sm text-muted-foreground">Let Dawinix reference recent conversations when responding</div>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -236,7 +236,7 @@ export function PersonalizationSettings() {
         </div>
 
         <p className="text-xs text-muted-foreground mt-4">
-          Haitian ChatGPT may use Memory to personalize queries to search providers, such as Bing.{' '}
+         Dawinix may use Memory to personalize queries to search providers, such as Bing.{' '}
           <button className="text-primary hover:underline">Learn more</button>
         </p>
       </div>
