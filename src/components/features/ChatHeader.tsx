@@ -2,6 +2,7 @@ import { Menu, MoreVertical, ChevronDown, Sparkles, User } from 'lucide-react';
 import { useChatStore } from '@/stores/chatStore';
 import { useModalStore } from '@/stores/modalStore';
 import { useAuth } from '@/lib/auth';
+import { useNavigate } from "react-router-dom";
 
 export function ChatHeader() {
   const { toggleSidebar } = useChatStore();
@@ -25,10 +26,13 @@ export function ChatHeader() {
             <ChevronDown className="w-4 h-4" />
           </button>
 
-          <button className="hidden md:flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full hover:opacity-90 transition-opacity">
-            <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-medium">Get Plus</span>
-          </button>
+          <button
+      onClick={() => navigate("/upgrade")}
+      className="hidden md:flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full hover:opacity-90 transition-opacity"
+    >
+      <Sparkles className="w-4 h-4" />
+      <span className="text-sm font-medium">Get Plus</span>
+    </button>
         </div>
 
         {/* Right Section */}
