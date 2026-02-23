@@ -69,7 +69,7 @@ export function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen overflow-hidden">
       {/* Welcome Modal */}
       <WelcomeModal
         isOpen={showWelcomeModal}
@@ -83,15 +83,15 @@ export function ChatPage() {
       />
       {!showEmptyState && <ChatHeader />}
       
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overscroll-contain">
         {showEmptyState ? (
           <div className="h-full flex flex-col items-center justify-center px-4">
-            <h1 className="text-3xl md:text-4xl font-semibold mb-2 text-center">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-2 text-center">
               {emptyMessage}
             </h1>
           </div>
         ) : (
-          <div className="pb-32">
+          <div className="pb-24 sm:pb-32">
             {messages.map((message) => (
               <ChatMessage key={message.id} message={message} />
             ))}

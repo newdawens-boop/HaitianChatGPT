@@ -10,6 +10,8 @@ interface ChatState {
   selectedModel: string;
   loadingStatus: string | null;
   editingMessageId: string | null;
+  isStreaming: boolean;
+  streamingMessageId: string | null;
   setChats: (chats: Chat[]) => void;
   setCurrentChatId: (id: string | null) => void;
   setMessages: (messages: Message[]) => void;
@@ -22,6 +24,8 @@ interface ChatState {
   setSelectedModel: (model: string) => void;
   setLoadingStatus: (status: string | null) => void;
   setEditingMessageId: (id: string | null) => void;
+  setIsStreaming: (streaming: boolean) => void;
+  setStreamingMessageId: (id: string | null) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -33,6 +37,8 @@ export const useChatStore = create<ChatState>((set) => ({
   selectedModel: 'general-assistant',
   loadingStatus: null,
   editingMessageId: null,
+  isStreaming: false,
+  streamingMessageId: null,
   setChats: (chats) => set({ chats }),
   setCurrentChatId: (id) => set({ currentChatId: id }),
   setMessages: (messages) => set({ messages }),
@@ -50,4 +56,6 @@ export const useChatStore = create<ChatState>((set) => ({
   setSelectedModel: (model) => set({ selectedModel: model }),
   setLoadingStatus: (status) => set({ loadingStatus: status }),
   setEditingMessageId: (id) => set({ editingMessageId: id }),
+  setIsStreaming: (streaming) => set({ isStreaming: streaming }),
+  setStreamingMessageId: (id) => set({ streamingMessageId: id }),
 }));

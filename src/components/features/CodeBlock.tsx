@@ -76,28 +76,28 @@ export function CodeBlock({ code, language = 'plaintext' }: CodeBlockProps) {
   };
 
   return (
-    <div className="my-4 rounded-xl overflow-hidden bg-[#282C34] shadow-lg">
-      <div className="flex items-center justify-between px-4 py-2 bg-[#21252B] border-b border-gray-700">
+    <div className="my-4 rounded-xl overflow-hidden bg-[#282C34] shadow-lg border border-gray-700">
+      <div className="flex items-center justify-between px-3 sm:px-4 py-2 bg-[#21252B] border-b border-gray-700">
         <span className="text-xs text-gray-400 font-mono uppercase tracking-wide">{language}</span>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-gray-700 transition-colors rounded-md"
+          className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-gray-700 transition-colors rounded-md"
         >
           {copied ? (
             <>
               <Check className="w-3.5 h-3.5 text-green-500" />
-              <span className="text-green-500">Copied!</span>
+              <span className="text-green-500 hidden sm:inline">Copied!</span>
             </>
           ) : (
             <>
               <Copy className="w-3.5 h-3.5" />
-              Copy code
+              <span className="hidden sm:inline">Copy code</span>
             </>
           )}
         </button>
       </div>
-      <pre className="p-4 overflow-x-auto">
-        <code className="text-sm font-mono leading-relaxed text-[#ABB2BF]">
+      <pre className="p-3 sm:p-4 overflow-x-auto max-h-[60vh] sm:max-h-[70vh] overflow-y-auto">
+        <code className="text-xs sm:text-sm font-mono leading-relaxed text-[#ABB2BF]">
           {highlightCode(code, language)}
         </code>
       </pre>

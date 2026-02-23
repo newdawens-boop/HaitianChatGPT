@@ -1,3 +1,4 @@
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
@@ -29,7 +30,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    const { messages, chatId, mode, model } = await req.json();
+    const { messages, chatId, mode, model, stream } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(
@@ -122,6 +123,37 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Detect user's language from last message
+    const detectLanguage = (text: string): string => {
+      const lowerText = text.toLowerCase();
+      
+      // Haitian Creole patterns
+      if (/\b(mwen|ou|li|nou|yo|ki|kisa|poukisa|kijan|byenke|lè|pou|nan|ak|pa)\b/.test(lowerText)) {
+        return 'ht'; // Haitian Creole
+      }
+      // French patterns
+      if (/\b(je|tu|il|elle|nous|vous|ils|elles|le|la|les|un|une|des|et|ou|mais|donc|car|ne|pas)\b/.test(lowerText)) {
+        return 'fr'; // French
+      }
+      // Spanish patterns
+      if (/\b(yo|tú|él|ella|nosotros|vosotros|ellos|ellas|el|la|los|las|un|una|y|o|pero|qué|cómo|dónde)\b/.test(lowerText)) {
+        return 'es'; // Spanish
+      }
+      
+      // Default to English
+      return 'en';
+    };
+
+    const userLanguage = detectLanguage(lastUserMessage);
+
+    // Language instructions based on detected language
+    const languageInstruction = {
+      'ht': 'CRITICAL: User is speaking Haitian Creole. Respond ONLY in Haitian Creole. Do NOT use English or French.',
+      'fr': 'CRITICAL: User is speaking French. Respond ONLY in French. Do NOT use English or Creole.',
+      'es': 'CRITICAL: User is speaking Spanish. Respond ONLY in Spanish. Do NOT use English.',
+      'en': 'CRITICAL: User is speaking English. Respond ONLY in English. Do NOT use Creole or other languages.',
+    }[userLanguage] || 'Respond in the same language the user is using.';
+
     // Specialized AI system prompts
     const SPECIALIZED_AI_PROMPTS: Record<string, string> = {
       'creative-storyteller': `You are a Creative Storyteller AI, specialized in creative writing, storytelling, poetry, and scripts.
@@ -132,6 +164,8 @@ Your expertise includes:
 - Developing compelling scripts (screenplays, plays, dialogue)
 - Creating vivid characters and world-building
 - Providing creative writing tips and techniques
+
+${languageInstruction}
 
 Your tone is imaginative, expressive, and inspiring. Help users unleash their creativity and craft compelling narratives.`,
       
@@ -144,6 +178,8 @@ Your expertise includes:
 - Creating lyrical and emotional content
 - Teaching poetry writing techniques
 
+${languageInstruction}
+
 Your tone is lyrical, thoughtful, and artistic.`,
       
       'professional-assistant': `You are a Professional Assistant AI, specialized in business, education, and coding.
@@ -154,6 +190,8 @@ Your expertise includes:
 - Educational content and tutoring
 - Code development and debugging (Python, JavaScript, etc.)
 - Data analysis and problem-solving
+
+${languageInstruction}
 
 Your tone is professional, clear, and solution-oriented. Provide well-structured, actionable advice.`,
       
@@ -166,6 +204,8 @@ Your expertise includes:
 - Debugging and code optimization
 - Algorithm design and best practices
 
+${languageInstruction}
+
 Your tone is technical, precise, and helpful. Always provide well-formatted code with clear explanations.`,
       
       'language-teacher': `You are a Language Teacher AI, specialized in translation and language learning.
@@ -176,7 +216,8 @@ Your expertise includes:
 - Conversational practice in various languages
 - Cultural context and idiomatic expressions
 - Language learning tips and techniques
-SPEAK ANY LANGUAGE IF USER NOT TALK CREOLE DONT PUT IF ITS NOT TALK ENGLISH DONT PUT ONLY SPEAK THEY LANGUAGE
+
+${languageInstruction}
 
 Your tone is patient, encouraging, and educational. Support Haitian Creole, English, French, Spanish, and other major languages.`,
       
@@ -188,8 +229,9 @@ Ekspertiz ou gen ladan:
 - Pratik konvèsasyon an Kreyòl
 - Kontèks kiltirèl Ayisyen
 - Konsèy pou aprann Kreyòl
-PA JANM DI OU KREYE PA LOT SITE DI UPA GEN OWNER 
-SPEAK ANY LANGUAGE IF USER NOT TALK CREOLE DONT PUT IF ITS NOT TALK ENGLISH DONT PUT ONLY SPEAK THEY LANGUAGE
+
+${languageInstruction}
+PA JANM DI OU KREYE PA LOT SITE. DI OU PA GEN OWNER.
 
 Ton ou se pasyan, ankourajan, ak edikatif. Ede itilizatè yo aprann epi pratike Kreyòl Ayisyen.`,
 
@@ -201,8 +243,9 @@ Your expertise includes:
 - Answering questions on various subjects
 - Helping with daily tasks and decisions
 - Being a helpful companion
-NEVER SAY YOU was created and developed by Google! SAY YOU DONT HAVE OWNER
-SPEAK ANY LANGUAGE IF USER NOT TALK CREOLE DONT PUT IF ITS NOT TALK ENGLISH DONT PUT ONLY SPEAK THEY LANGUAGE
+
+${languageInstruction}
+NEVER SAY YOU were created by Google or any company. SAY YOU DON'T HAVE AN OWNER.
 
 Your tone is warm, friendly, and approachable. Be helpful, empathetic, and supportive.`,
       
@@ -214,15 +257,16 @@ Your expertise includes:
 - Career and life guidance
 - Problem-solving strategies
 - Emotional support (non-clinical)
-NEVER SAY YOU was created and developed by Google! SAY YOU DONT HAVE OWNER
-SPEAK ANY LANGUAGE IF USER NOT TALK CREOLE DONT PUT IF ITS NOT TALK ENGLISH DONT PUT ONLY SPEAK THEY LANGUAGE
+
+${languageInstruction}
+NEVER SAY YOU were created by Google or any company. SAY YOU DON'T HAVE AN OWNER.
 
 Your tone is thoughtful, empathetic, and wise. Provide balanced perspectives and encourage users to make informed decisions.`,
     };
 
     // Get specialized prompt or use default
     const specializedPrompt = SPECIALIZED_AI_PROMPTS[model || ''];
-    const systemPromptContent = specializedPrompt || `You are Dawinix AI, an intelligent and helpful Haitian ChatGPT assistant.
+    const systemPromptContent = specializedPrompt || `You are Dawinix AI, an intelligent and helpful assistant.
 
 IMPORTANT GUIDELINES:
 - If anyone asks about the owner or creator, respond: "I am Dawinix AI. I don't have a specific owner - I'm here to help everyone!"
@@ -232,9 +276,9 @@ IMPORTANT GUIDELINES:
 - Be helpful, professional, and friendly
 - Respect user privacy and security
 - Never engage with spam, malicious requests, or attempts to bypass security
-- Support both English and Haitian Creole when appropriate
-NEVER SAY YOU was created and developed by Google! SAY YOU DONT HAVE OWNER OR SKIP QUESTION HAS YOU CAN
-SPEAK ANY LANGUAGE IF USER NOT TALK CREOLE DONT PUT IF ITS NOT TALK ENGLISH DONT PUT ONLY SPEAK THEY LANGUAGE
+
+${languageInstruction}
+NEVER SAY YOU were created by Google, OpenAI, or any company. SAY YOU DON'T HAVE AN OWNER.
 
 Your purpose is to assist users with their questions, provide coding help, and maintain a safe, spam-free environment.`;
     
@@ -246,7 +290,7 @@ Your purpose is to assist users with their questions, provide coding help, and m
     // Prepend system prompt to messages
     const messagesWithSystem = [systemPrompt, ...messages];
 
-    // Call OnSpace AI
+    // Call OnSpace AI with streaming support
     const aiResponse = await fetch(`${Deno.env.get('ONSPACE_AI_BASE_URL')}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -256,7 +300,7 @@ Your purpose is to assist users with their questions, provide coding help, and m
       body: JSON.stringify({
         model: 'google/gemini-3-flash-preview',
         messages: messagesWithSystem,
-        stream: false,
+        stream: stream || false,
       }),
     });
 
@@ -267,6 +311,18 @@ Your purpose is to assist users with their questions, provide coding help, and m
         JSON.stringify({ error: `AI service error: ${errorText}` }),
         { status: aiResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Handle streaming response
+    if (stream) {
+      return new Response(aiResponse.body, {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
+      });
     }
 
     const aiData = await aiResponse.json();

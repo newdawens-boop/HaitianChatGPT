@@ -19,6 +19,8 @@ interface ChatMessageProps {
 
 export function ChatMessage({ message, isLatest = false, messageIndex = 1, totalMessages = 1 }: ChatMessageProps) {
   const isUser = message.role === 'user';
+  const { isStreaming, streamingMessageId } = useChatStore();
+  const isThisMessageStreaming = isStreaming && streamingMessageId === message.id;
 
   const handleRetryImage = () => {
     const { addMessage, setIsLoading, setLoadingStatus } = useChatStore.getState();
@@ -257,7 +259,7 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
 
           {/* Content */}
           <div className={`flex-1 space-y-3 ${isUser ? 'flex flex-col items-end' : ''}`}>
-            <div className="prose prose-sm dark:prose-invert max-w-none">
+            <div className="prose prose-sm dark:prose-invert max-w-none break-words">
               <MessageContent 
                 content={message.content} 
                 attachments={message.attachments as any}
@@ -266,6 +268,7 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
                 generatedFile={message.generatedFile}
                 onRetryImage={handleRetryImage}
                 onEditImage={handleEditImage}
+                isStreaming={isThisMessageStreaming}
               />
             </div>
             

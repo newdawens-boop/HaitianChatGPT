@@ -28,6 +28,7 @@ interface MessageContentProps {
   };
   onRetryImage?: () => void;
   onEditImage?: (editDescription: string) => void;
+  isStreaming?: boolean;
 }
 
 export function MessageContent({ 
@@ -37,7 +38,8 @@ export function MessageContent({
   generatedImages,
   generatedFile,
   onRetryImage,
-  onEditImage 
+  onEditImage,
+  isStreaming = false
 }: MessageContentProps) {
   const [linkSafetyOpen, setLinkSafetyOpen] = useState(false);
   const [webViewOpen, setWebViewOpen] = useState(false);
@@ -89,7 +91,12 @@ export function MessageContent({
       );
     }
 
-    return parts.length > 0 ? parts : <p className="whitespace-pre-wrap">{text}</p>;
+    return parts.length > 0 ? parts : (
+      <p className="whitespace-pre-wrap break-words">
+        {text}
+        {isStreaming && <span className="inline-block w-1 h-4 ml-1 bg-current animate-pulse" />}
+      </p>
+    );
   };
 
   const isImageType = (type: string) => type.startsWith('image/');

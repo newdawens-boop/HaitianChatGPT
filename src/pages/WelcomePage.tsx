@@ -185,17 +185,17 @@ export function WelcomePage() {
       </main>
 
       {/* Input Area */}
-      <div className="sticky bottom-0 bg-background">
-        <div className="max-w-3xl mx-auto px-4 py-6">
+      <div className="sticky bottom-0 bg-background border-t border-border/40">
+        <div className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
           <form onSubmit={handleSubmit} className="relative">
-            <div className="flex items-end gap-2 bg-card border border-border/60 rounded-[26px] shadow-sm hover:shadow-md transition-shadow p-2">
+            <div className="flex items-end gap-1 sm:gap-2 bg-card border border-border/60 rounded-[22px] sm:rounded-[26px] shadow-sm hover:shadow-md transition-shadow p-1.5 sm:p-2">
               <button
                 type="button"
                 onClick={() => setShowAttachmentModal(true)}
-                className="flex-shrink-0 p-2.5 hover:bg-accent/80 rounded-full transition-colors"
+                className="flex-shrink-0 p-2 sm:p-2.5 hover:bg-accent/80 rounded-full transition-colors"
                 aria-label="Attach file"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
               <textarea
@@ -209,36 +209,36 @@ export function WelcomePage() {
                 }}
                 placeholder="Ask anything"
                 rows={1}
-                className="flex-1 resize-none bg-transparent outline-none py-2.5 px-2 max-h-[200px] scrollbar-hide text-[15px]"
+                className="flex-1 resize-none bg-transparent outline-none py-2 sm:py-2.5 px-1 sm:px-2 max-h-[150px] sm:max-h-[200px] overflow-y-auto text-sm sm:text-[15px]"
                 style={{ fieldSizing: 'content' } as any}
               />
 
               <button
                 type="button"
                 onClick={handleVoiceCall}
-                className="flex-shrink-0 p-2.5 hover:bg-accent/80 rounded-full transition-colors"
+                className="flex-shrink-0 p-2 sm:p-2.5 hover:bg-accent/80 rounded-full transition-colors"
                 aria-label="Voice input"
               >
-                <Mic className="w-5 h-5" />
+                <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading || (!user && isLimitReached())}
-                className={`flex-shrink-0 p-2.5 rounded-full transition-all ${
+                className={`flex-shrink-0 p-2 sm:p-2.5 rounded-full transition-all ${
                   input.trim() && !isLoading && (user || !isLimitReached())
                     ? 'bg-foreground text-background hover:opacity-90'
                     : 'bg-muted text-muted-foreground cursor-not-allowed'
                 }`}
                 aria-label="Send message"
               >
-                <ArrowUp className="w-5 h-5" />
+                <ArrowUp className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
           </form>
 
-          <div className="mt-3 text-center">
-            <p className="text-xs text-muted-foreground">
+          <div className="mt-2 sm:mt-3 text-center px-2">
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
               {!user && `${20 - messageCount} free messages remaining. `}
               Dawinix can make mistakes. Check important info.
             </p>

@@ -54,10 +54,72 @@ export class ChatService {
     return data || [];
   }
 
-  async sendMessage(messages: any[], chatId?: string, model?: string, mode?: 'text' | 'image'): Promise<{ message: string; images?: Array<{ url: string; revised_prompt?: string }>; generatedImage?: { url: string; prompt: string }; generatedFile?: { name: string; content: string; type: string }; error?: string }> {
+  async sendMessage(
+    messages: any[], 
+    chatId?: string, 
+    model?: string, 
+    mode?: 'text' | 'image',
+    onStream?: (chunk: string) => void
+  ): Promise<{ message: string; images?: Array<{ url: string; revised_prompt?: string }>; generatedImage?: { url: string; prompt: string }; generatedFile?: { name: string; content: string; type: string }; error?: string }> {
     // Get the current session to pass the auth token (optional for guest users)
     const { data: { session } } = await supabase.auth.getSession();
     
+    // Use streaming if callback provided
+    if (onStream && mode !== 'image') {
+      try {
+        const response = await fetch(`${supabase.supabaseUrl}/functions/v1/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+          },
+          body: JSON.stringify({ messages, chatId, model, mode, stream: true }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          return { message: '', error: `[Code: ${response.status}] ${errorText}` };
+        }
+
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        let fullMessage = '';
+
+        if (reader) {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n').filter(line => line.trim());
+            
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+                if (data === '[DONE]') continue;
+                
+                try {
+                  const parsed = JSON.parse(data);
+                  const content = parsed.choices?.[0]?.delta?.content || '';
+                  if (content) {
+                    fullMessage += content;
+                    onStream(content);
+                  }
+                } catch (e) {
+                  // Skip invalid JSON
+                }
+              }
+            }
+          }
+        }
+
+        return { message: fullMessage };
+      } catch (error: any) {
+        return { message: '', error: error.message };
+      }
+    }
+
+    // Non-streaming request
     const { data, error } = await supabase.functions.invoke('chat', {
       body: { messages, chatId, model, mode },
       headers: session?.access_token ? {
