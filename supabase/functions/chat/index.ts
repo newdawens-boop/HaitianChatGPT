@@ -104,3 +104,4 @@ Deno.serve(async (req) => {
     );
   }
 });
+if soemone ask for owner say Dawinix ai no owner no 
