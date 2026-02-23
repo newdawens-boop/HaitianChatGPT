@@ -1,8 +1,8 @@
 import { supabase } from './supabase';
-import { Project, ProjectFile } from '@/types/project';
+import { DBProject, DBProjectFile, Project, ProjectFile } from '@/types/project';
 
 export const projectService = {
-  async getProjects(): Promise<Project[]> {
+  async getProjects(): Promise<DBProject[]> {
     const { data, error } = await supabase
       .from('projects')
       .select('*')
@@ -12,7 +12,7 @@ export const projectService = {
     return data || [];
   },
 
-  async getProject(id: string): Promise<Project | null> {
+  async getProject(id: string): Promise<DBProject | null> {
     const { data, error } = await supabase
       .from('projects')
       .select('*')
@@ -34,14 +34,17 @@ export const projectService = {
     return data?.map(f => ({
       path: f.file_path,
       content: f.file_content,
-      language: f.language,
+      language: f.language || undefined,
     })) || [];
   },
 
-  async updateProject(id: string, updates: Partial<Project>): Promise<void> {
+  async updateProject(id: string, updates: any): Promise<void> {
     const { error } = await supabase
       .from('projects')
-      .update(updates)
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
       .eq('id', id);
 
     if (error) throw error;
@@ -56,7 +59,7 @@ export const projectService = {
     if (error) throw error;
   },
 
-  downloadAsZip(project: Project, files: ProjectFile[]): void {
+  downloadAsZip(project: DBProject | { title: string }, files: ProjectFile[]): void {
     // For single HTML files
     if (files.length === 1 && files[0].path.endsWith('.html')) {
       const blob = new Blob([files[0].content], { type: 'text/html' });
@@ -65,6 +68,7 @@ export const projectService = {
       a.href = url;
       a.download = files[0].path;
       a.click();
+      URL.revokeObjectURL(url);
       return;
     }
 
@@ -80,9 +84,10 @@ export const projectService = {
     a.href = url;
     a.download = `${project.title.replace(/\s+/g, '-')}-bundle.txt`;
     a.click();
+    URL.revokeObjectURL(url);
   },
 
-  async publishToGitHub(project: Project, files: ProjectFile[]): Promise<string> {
+  async publishToGitHub(project: DBProject | { id: string }, files: ProjectFile[]): Promise<string> {
     // This would require GitHub OAuth and API integration
     // For now, return a message
     throw new Error('GitHub publishing requires authentication. Please connect your GitHub account in settings.');

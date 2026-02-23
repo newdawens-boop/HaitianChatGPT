@@ -1,8 +1,8 @@
 import { Code, Smartphone, Globe, ChevronRight } from 'lucide-react';
-import { Project } from '@/types/project';
+import { LegacyProject } from '@/types/project';
 
 interface ProjectCardProps {
-  project: Project;
+  project: LegacyProject;
   onClick: () => void;
 }
 
@@ -21,7 +21,7 @@ export function ProjectCard({ project, onClick }: ProjectCardProps) {
 
   const getStatusColor = () => {
     switch (project.status) {
-      case 'creating':
+      case 'generating':
         return 'bg-blue-500';
       case 'ready':
         return 'bg-green-500';

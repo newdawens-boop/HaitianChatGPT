@@ -4,7 +4,7 @@ import { Eye, Code, MoreVertical, X, Copy, Download, Github, FileCode, Loader2 }
 import { toast } from 'sonner';
 import { useProjectStore } from '@/stores/projectStore';
 import { projectService } from '@/lib/projectService';
-import { Project, ProjectFile } from '@/types/project';
+import { DBProject, ProjectFile } from '@/types/project';
 
 export function ProjectWorkspacePage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -12,7 +12,7 @@ export function ProjectWorkspacePage() {
   const [activeTab, setActiveTab] = useState<'preview' | 'code'>('preview');
   const [showMenu, setShowMenu] = useState(false);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [project, setProject] = useState<Project | null>(null);
+  const [project, setProject] = useState<DBProject | null>(null);
   const [files, setFiles] = useState<ProjectFile[]>([]);
   const [loading, setLoading] = useState(true);
 
