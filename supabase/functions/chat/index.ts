@@ -305,3 +305,10 @@ Your purpose is to assist users with their questions, provide coding help, and m
     );
   }
 });
+{
+  "eventMessage": "worker boot error: Uncaught SyntaxError: Identifier 'lastUserMessage' has already been declared\n    at file:///models/hdnpxrbyzscpstcihdnp/chat/index.ts:112:11",
+  "functionId": "chat",
+  "id": "819dc91d-4f21-4692-91f5-8c42c93b189f",
+  "logLevel": "ERROR",
+  "timestamp": 1771818211
+}
