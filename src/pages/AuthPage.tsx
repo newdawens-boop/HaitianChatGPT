@@ -349,4 +349,3 @@ export function AuthPage() {
     </div>
   );
 }
-fix login when i finish to login with google and other i see blanc white screen
