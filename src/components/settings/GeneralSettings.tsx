@@ -147,7 +147,7 @@ export function GeneralSettings() {
             <div className="flex items-center justify-between py-3">
               <div>
                 <div className="font-medium">Web search</div>
-                <div className="text-sm text-muted-foreground">Let Haitian ChatGPT automatically search the web for answers</div>
+                <div className="text-sm text-muted-foreground">Let Dawinix automatically search the web for answers</div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -163,7 +163,7 @@ export function GeneralSettings() {
             <div className="flex items-center justify-between py-3">
               <div>
                 <div className="font-medium">Code</div>
-                <div className="text-sm text-muted-foreground">Let Haitian ChatGPT execute code using Code Interpreter</div>
+                <div className="text-sm text-muted-foreground">Let Dawinix execute code using Code Interpreter</div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -179,7 +179,7 @@ export function GeneralSettings() {
             <div className="flex items-center justify-between py-3">
               <div>
                 <div className="font-medium">Canvas</div>
-                <div className="text-sm text-muted-foreground">Collaborate with Haitian ChatGPT on text and code</div>
+                <div className="text-sm text-muted-foreground">Collaborate with Dawinix on text and code</div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -194,8 +194,8 @@ export function GeneralSettings() {
 
             <div className="flex items-center justify-between py-3">
               <div>
-                <div className="font-medium">Haitian ChatGPT Voice</div>
-                <div className="text-sm text-muted-foreground">Enable voice mode in Haitian ChatGPT</div>
+                <div className="font-medium">Dawinix Voice</div>
+                <div className="text-sm text-muted-foreground">Enable voice mode in Dawinix</div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -227,7 +227,7 @@ export function GeneralSettings() {
             <div className="flex items-center justify-between py-3">
               <div>
                 <div className="font-medium">Connector search</div>
-                <div className="text-sm text-muted-foreground">Let Haitian ChatGPT automatically search connected sources for answers</div>
+                <div className="text-sm text-muted-foreground">Let Dawinix automatically search connected sources for answers</div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
