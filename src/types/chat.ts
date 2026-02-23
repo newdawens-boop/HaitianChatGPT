@@ -15,6 +15,13 @@ export interface Message {
     description: string;
     status: 'generating' | 'ready';
   };
+  projectArtifact?: {
+    projectId: string;
+    title: string;
+    description?: string;
+    status: 'generating' | 'ready' | 'error';
+    preview?: string;
+  };
   generatedImage?: {
     url: string;
     prompt: string;

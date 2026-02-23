@@ -269,19 +269,14 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
               />
             </div>
             
-            {/* Project Artifact - Detect if this message contains a project */}
-            {!isUser && (message.content.toLowerCase().includes('create a') || 
-                        message.content.toLowerCase().includes('build a') ||
-                        message.content.toLowerCase().includes('make a') ||
-                        message.content.toLowerCase().includes('settings') ||
-                        message.content.toLowerCase().includes('chatbot') ||
-                        message.content.toLowerCase().includes('project')) && (
+            {/* Project Artifact - Only show when explicitly requested */}
+            {!isUser && message.projectArtifact && (
               <ProjectArtifact
-                projectId={`project-${message.id}`}
-                title={message.content.split('\n')[0].slice(0, 50) || 'Interactive Project'}
-                description="Interactive artifact"
-                status="ready"
-                preview={undefined}
+                projectId={message.projectArtifact.projectId}
+                title={message.projectArtifact.title}
+                description={message.projectArtifact.description || 'Interactive artifact'}
+                status={message.projectArtifact.status || 'ready'}
+                preview={message.projectArtifact.preview}
               />
             )}
 
