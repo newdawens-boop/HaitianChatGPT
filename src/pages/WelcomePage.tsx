@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, Plus, Mic, ArrowUp } from 'lucide-react';
 import { useModalStore } from '@/stores/modalStore';
 import { useGuestStore } from '@/stores/guestStore';
-import { useAuthStore } from '@/lib/auth';
+import { useAuth } from '@/lib/auth';
 import { WelcomeModal } from '@/components/modals/WelcomeModal';
 import { AttachmentModal } from '@/components/modals/AttachmentModal';
+import { UserMenu } from '@/components/modals/UserMenu';
 import { ChatMessage } from '@/components/features/ChatMessage';
 import { Message } from '@/types/chat';
 import { chatService } from '@/lib/chatService';
@@ -14,7 +15,7 @@ import { toast } from 'sonner';
 export function WelcomePage() {
   const navigate = useNavigate();
   const { setUserMenuOpen } = useModalStore();
-  const { user } = useAuthStore();
+  const { user } = useAuth();
   const { hasSeenWelcome, setHasSeenWelcome, messageCount, incrementMessageCount, isLimitReached } = useGuestStore();
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showAttachmentModal, setShowAttachmentModal] = useState(false);
@@ -105,6 +106,9 @@ export function WelcomePage() {
         onClose={() => setShowAttachmentModal(false)}
         onPickMedia={handlePickMedia}
       />
+
+      {/* User Menu */}
+      <UserMenu />
 
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-border/40">
