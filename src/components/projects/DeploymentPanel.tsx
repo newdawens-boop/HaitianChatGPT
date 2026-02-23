@@ -163,3 +163,4 @@ export function DeploymentPanel({ project }: DeploymentPanelProps) {
     </div>
   );
 }
+the ai must create real project real preview 
