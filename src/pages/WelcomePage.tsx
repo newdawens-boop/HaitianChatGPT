@@ -1,21 +1,84 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, HelpCircle, Paperclip, Globe, BookOpen, Image as ImageIcon, ArrowUp } from 'lucide-react';
+import { Menu, Plus, Phone, Settings, ArrowUp } from 'lucide-react';
 import { useModalStore } from '@/stores/modalStore';
 import { useGuestStore } from '@/stores/guestStore';
 import { WelcomeModal } from '@/components/modals/WelcomeModal';
+import { ChatMessage } from '@/components/features/ChatMessage';
+import { Message } from '@/types/chat';
+import { chatService } from '@/lib/chatService';
+import { toast } from 'sonner';
 
 export function WelcomePage() {
   const navigate = useNavigate();
-  const { openUserMenu } = useModalStore();
-  const { hasSeenWelcome, setHasSeenWelcome } = useGuestStore();
+  const { openUserMenu, setAttachmentMenuOpen } = useModalStore();
+  const { hasSeenWelcome, setHasSeenWelcome, messageCount, incrementMessageCount, isLimitReached } = useGuestStore();
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (!hasSeenWelcome) {
       setShowWelcomeModal(true);
     }
   }, [hasSeenWelcome]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    // Check 20 message limit for guests
+    if (isLimitReached()) {
+      toast.error('You have reached the 20 message limit. Please log in to continue.');
+      navigate('/auth');
+      return;
+    }
+
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: input.trim(),
+      created_at: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+    incrementMessageCount();
+
+    try {
+      const conversationMessages = [
+        ...messages.map((m) => ({ role: m.role, content: m.content })),
+        { role: 'user' as const, content: userMessage.content },
+      ];
+
+      const { message, error } = await chatService.sendMessage(conversationMessages);
+
+      if (error) {
+        toast.error(error);
+        return;
+      }
+
+      const assistantMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: message,
+        created_at: new Date().toISOString(),
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to send message');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVoiceCall = () => {
+    toast.info('Connecting to voice mode...');
+    navigate('/voice');
+  };
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -29,72 +92,121 @@ export function WelcomePage() {
       />
 
       {/* Header */}
-      <header className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={openUserMenu}
-            className="p-2 hover:bg-accent rounded-lg transition-colors"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
-          <h1 className="text-xl font-semibold">ChatGPT</h1>
-        </div>
+      <header className="flex items-center justify-between p-4 border-b border-border">
+        <button
+          onClick={openUserMenu}
+          className="p-2 hover:bg-accent rounded-lg transition-colors"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+        
+        <h1 className="text-xl font-semibold">Haitian ChatGPT</h1>
+        
         <div className="flex items-center gap-2">
           <button
-            onClick={() => navigate('/auth')}
-            className="px-6 py-2 bg-foreground text-background rounded-full font-medium hover:opacity-90 transition-opacity"
+            onClick={handleVoiceCall}
+            className="p-2 hover:bg-accent rounded-full transition-colors"
+            title="Voice call"
           >
-            Log in
+            <Phone className="w-5 h-5" />
           </button>
-          <button className="p-2 hover:bg-accent rounded-full transition-colors">
-            <HelpCircle className="w-6 h-6" />
+          <button
+            onClick={() => navigate('/settings')}
+            className="p-2 hover:bg-accent rounded-full transition-colors"
+            title="Settings"
+          >
+            <Settings className="w-5 h-5" />
           </button>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4">
-        <div className="max-w-3xl w-full space-y-8">
-          <div className="text-center space-y-4">
-            <h2 className="text-4xl font-medium text-muted-foreground mb-12">Ready when you are.</h2>
+      {/* Messages */}
+      <main className="flex-1 overflow-y-auto">
+        {messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full px-4">
+            <div className="text-center space-y-4 max-w-md">
+              <h2 className="text-3xl md:text-4xl font-medium text-muted-foreground">
+                Ready when you are.
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {20 - messageCount} free messages remaining
+              </p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-4">
+            {messages.map((message, index) => (
+              <ChatMessage
+                key={message.id}
+                message={message}
+                isLatest={index === messages.length - 1}
+              />
+            ))}
+            {isLoading && (
+              <div className="py-6 px-4 bg-muted/30">
+                <div className="max-w-3xl mx-auto flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">HC</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </main>
 
       {/* Input Area */}
-      <div className="p-4">
-        <div className="max-w-3xl mx-auto">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Ask anything"
-              onClick={() => setShowWelcomeModal(true)}
-              readOnly
-              className="w-full px-16 py-4 pr-14 bg-muted rounded-full outline-none cursor-pointer hover:bg-accent transition-colors text-center"
-            />
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 text-muted-foreground pointer-events-none">
-              <button className="w-8 h-8 hover:bg-accent rounded-full flex items-center justify-center transition-colors opacity-50">
-                <Paperclip className="w-5 h-5" />
+      <div className="sticky bottom-0 bg-background border-t border-border">
+        <div className="max-w-3xl mx-auto px-4 py-4">
+          <form onSubmit={handleSubmit} className="relative">
+            <div className="flex items-end gap-2 bg-card border border-border rounded-3xl shadow-lg p-2">
+              <button
+                type="button"
+                onClick={() => setAttachmentMenuOpen(true)}
+                className="flex-shrink-0 p-2.5 hover:bg-accent rounded-full transition-colors"
+              >
+                <Plus className="w-5 h-5" />
               </button>
-              <button className="w-8 h-8 hover:bg-accent rounded-full flex items-center justify-center transition-colors opacity-50">
-                <Globe className="w-5 h-5" />
-              </button>
-              <button className="w-8 h-8 hover:bg-accent rounded-full flex items-center justify-center transition-colors opacity-50">
-                <BookOpen className="w-5 h-5" />
-              </button>
-              <button className="w-8 h-8 hover:bg-accent rounded-full flex items-center justify-center transition-colors opacity-50">
-                <ImageIcon className="w-5 h-5" />
+
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
+                }}
+                placeholder="Ask anything"
+                rows={1}
+                className="flex-1 resize-none bg-transparent outline-none py-2.5 px-2 max-h-[200px] scrollbar-hide"
+                style={{ fieldSizing: 'content' } as any}
+              />
+
+              <button
+                type="submit"
+                disabled={!input.trim() || isLoading || isLimitReached()}
+                className={`flex-shrink-0 p-2.5 rounded-full transition-all ${
+                  input.trim() && !isLoading && !isLimitReached()
+                    ? 'bg-foreground text-background hover:opacity-90'
+                    : 'bg-muted text-muted-foreground cursor-not-allowed'
+                }`}
+              >
+                <ArrowUp className="w-5 h-5" />
               </button>
             </div>
-            <button className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-muted-foreground/20 text-muted-foreground rounded-full flex items-center justify-center transition-colors">
-              <ArrowUp className="w-5 h-5" />
-            </button>
+          </form>
+
+          <div className="mt-3 text-center">
+            <p className="text-xs text-muted-foreground">
+              Haitian ChatGPT can make mistakes. Check important info. {20 - messageCount} messages left.
+            </p>
           </div>
-          <p className="text-xs text-center text-muted-foreground mt-4">
-            By messaging ChatGPT, an AI chatbot, you agree to our{' '}
-            <a href="#" className="underline">Terms</a> and have read our{' '}
-            <a href="#" className="underline">Privacy Policy</a>.
-          </p>
         </div>
       </div>
     </div>

@@ -16,6 +16,7 @@ import { ProjectWorkspacePage } from './pages/ProjectWorkspacePage';
 import { NewProjectPage } from './pages/NewProjectPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { ManagePaymentPage } from './pages/ManagePaymentPage';
+import { VoicePage } from './pages/VoicePage';
 import { UserMenu } from './components/modals/UserMenu';
 import { HelpMenu } from './components/modals/HelpMenu';
 import { BugReportModal } from './components/modals/BugReportModal';
@@ -122,6 +123,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <ManagePaymentPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/voice"
+          element={
+            <ProtectedRoute>
+              <VoicePage />
             </ProtectedRoute>
           }
         />

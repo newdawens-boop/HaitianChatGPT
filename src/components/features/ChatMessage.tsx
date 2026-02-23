@@ -1,4 +1,3 @@
-
 import { Message } from '@/types/chat';
 import { Copy, ThumbsUp, ThumbsDown, Share2, RotateCw, MoreHorizontal, ChevronLeft, ChevronRight, Edit2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -101,17 +100,15 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
     }
   };
 
-  const handleTryAgain = async () => { // <--- This function was misplaced
+  const handleTryAgain = async () => {
     if (!currentChatId || !user) return;
 
-    // Get the user message that prompted this response
     const messageIdx = messages.findIndex((m) => m.id === message.id);
     if (messageIdx <= 0) return;
 
     const userMessage = messages[messageIdx - 1];
     if (userMessage.role !== 'user') return;
 
-    // Remove the current AI response
     const updatedMessages = messages.slice(0, messageIdx);
     setMessages(updatedMessages);
     setIsLoading(true);
@@ -134,7 +131,6 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
 
       setMessages([...updatedMessages, newMessage]);
 
-      // Reload from database
       const dbMessages = await chatService.getChatMessages(currentChatId);
       setMessages(dbMessages);
     } catch (error: any) {
@@ -245,7 +241,7 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
   return (
     <div className={`group py-6 px-4 ${!isUser ? 'bg-muted/30' : ''}`}>
       <div className="max-w-3xl mx-auto">
-        <div className="flex gap-4">
+        <div className={`flex gap-4 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
           {/* Avatar */}
           <div className="flex-shrink-0">
             {isUser ? (
@@ -260,7 +256,7 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
           </div>
 
           {/* Content */}
-          <div className="flex-1 space-y-3">
+          <div className={`flex-1 space-y-3 ${isUser ? 'flex flex-col items-end' : ''}`}>
             <div className="prose prose-sm dark:prose-invert max-w-none">
               <MessageContent 
                 content={message.content} 

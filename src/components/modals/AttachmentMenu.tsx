@@ -1,4 +1,4 @@
-import { Camera, Paperclip, Image, Lightbulb, Search, ShoppingBag, BookOpen, Globe, Paintbrush, FileQuestion, FolderPlus } from 'lucide-react';
+import { Camera, Paperclip, Image, Lightbulb, Search, ShoppingBag, BookOpen, Globe, Paintbrush, FileQuestion, FolderPlus, Phone } from 'lucide-react';
 import { useModalStore } from '@/stores/modalStore';
 import { useRef } from 'react';
 import { toast } from 'sonner';
@@ -34,6 +34,11 @@ export function AttachmentMenu({ onFileSelect }: AttachmentMenuProps) {
     }
   };
 
+  const handleCall = () => {
+    navigate('/voice');
+    setAttachmentMenuOpen(false);
+  };
+
   return (
     <>
       <input
@@ -57,7 +62,7 @@ export function AttachmentMenu({ onFileSelect }: AttachmentMenuProps) {
         className="fixed inset-0 z-50 animate-fadeIn"
         onClick={() => setAttachmentMenuOpen(false)}
       />
-      <div className="fixed bottom-20 left-4 w-72 bg-popover border border-border rounded-2xl shadow-2xl z-50 overflow-hidden animate-fadeIn">
+      <div className="fixed bottom-20 left-4 right-4 md:left-4 md:right-auto md:w-80 bg-popover border border-border rounded-2xl shadow-2xl z-50 overflow-hidden animate-fadeIn">
         <div className="p-2">
           <button
             onClick={() => {
@@ -78,7 +83,7 @@ export function AttachmentMenu({ onFileSelect }: AttachmentMenuProps) {
             className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors text-left"
           >
             <Camera className="w-5 h-5" />
-            <span>Take photo</span>
+            <span>Camera</span>
           </button>
 
           <button
@@ -86,39 +91,35 @@ export function AttachmentMenu({ onFileSelect }: AttachmentMenuProps) {
             className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors text-left"
           >
             <Paperclip className="w-5 h-5" />
-            <span>Add photos & files</span>
+            <span>Photos</span>
+          </button>
+
+          <button
+            onClick={handleAddFiles}
+            className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors text-left"
+          >
+            <Paperclip className="w-5 h-5" />
+            <span>Files</span>
+          </button>
+
+          <button
+            onClick={handleCall}
+            className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors text-left"
+          >
+            <Phone className="w-5 h-5" />
+            <span>Call</span>
           </button>
 
           <div className="my-2 border-t border-border" />
 
           <button className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors text-left">
+            <Search className="w-5 h-5" />
+            <span>Web search</span>
+          </button>
+
+          <button className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors text-left">
             <Image className="w-5 h-5" />
             <span>Create image</span>
-          </button>
-
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors text-left">
-            <Lightbulb className="w-5 h-5" />
-            <span>Thinking</span>
-          </button>
-
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors text-left">
-            <Search className="w-5 h-5" />
-            <span>Deep research</span>
-          </button>
-
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors text-left">
-            <ShoppingBag className="w-5 h-5" />
-            <span>Shopping research</span>
-          </button>
-
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors text-left">
-            <BookOpen className="w-5 h-5" />
-            <span>Study and learn</span>
-          </button>
-
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors text-left">
-            <Globe className="w-5 h-5" />
-            <span>Web search</span>
           </button>
 
           <button className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors text-left">
@@ -128,7 +129,7 @@ export function AttachmentMenu({ onFileSelect }: AttachmentMenuProps) {
 
           <button className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors text-left">
             <FileQuestion className="w-5 h-5" />
-            <span>Quizzes</span>
+            <span>Presets</span>
           </button>
         </div>
       </div>

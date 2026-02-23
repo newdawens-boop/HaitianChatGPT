@@ -43,7 +43,7 @@ export const useGuestStore = create<GuestState>()(
 
       isLimitReached: () => {
         const state = get();
-        return state.isGuestMode && state.messageCount >= 25;
+        return state.isGuestMode && state.messageCount >= 20;
       },
     }),
     {
