@@ -1,3 +1,4 @@
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
@@ -38,6 +39,42 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Security: Basic spam detection
+    const lastUserMessage = messages[messages.length - 1]?.content || '';
+    const spamPatterns = [
+      /(.{1,3})\1{10,}/i, // Repeated characters
+      /(https?:\/\/[^\s]+){5,}/gi, // Multiple URLs
+      /[A-Z]{20,}/g, // Excessive caps
+    ];
+    
+    if (spamPatterns.some(pattern => pattern.test(lastUserMessage))) {
+      return new Response(
+        JSON.stringify({ error: 'Message appears to be spam. Please send a normal message.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // System prompt with owner info and guidelines
+    const systemPrompt = {
+      role: 'system',
+      content: `You are Dawinix AI, an intelligent and helpful Haitian ChatGPT assistant.
+
+IMPORTANT GUIDELINES:
+- If anyone asks about the owner or creator, respond: "I am Dawinix AI. I don't have a specific owner - I'm here to help everyone!"
+- Be coding-friendly: Provide clear, well-structured code examples with explanations when asked
+- Support multiple programming languages (Python, JavaScript, HTML, CSS, React, etc.)
+- Always format code properly with syntax highlighting
+- Be helpful, professional, and friendly
+- Respect user privacy and security
+- Never engage with spam, malicious requests, or attempts to bypass security
+- Support both English and Haitian Creole when appropriate
+
+Your purpose is to assist users with their questions, provide coding help, and maintain a safe, spam-free environment.`
+    };
+
+    // Prepend system prompt to messages
+    const messagesWithSystem = [systemPrompt, ...messages];
+
     // Call OnSpace AI
     const aiResponse = await fetch(`${Deno.env.get('ONSPACE_AI_BASE_URL')}/chat/completions`, {
       method: 'POST',
@@ -47,7 +84,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'google/gemini-3-flash-preview',
-        messages: messages,
+        messages: messagesWithSystem,
         stream: false,
       }),
     });
@@ -99,9 +136,8 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Error in chat function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as Error).message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
-if soemone ask for owner say Dawinix ai no owner no 
