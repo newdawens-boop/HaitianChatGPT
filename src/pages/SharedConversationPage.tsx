@@ -86,7 +86,7 @@ export function SharedConversationPage() {
 
         <div className="mt-12 pt-8 border-t border-border text-center">
           <p className="text-sm text-muted-foreground mb-4">
-            Try Haitian ChatGPT for free
+            Try Dawinix for free
           </p>
           <a
             href="/"
