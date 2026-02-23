@@ -203,7 +203,7 @@ export function VoicePage() {
           <MessageSquare className="w-5 h-5" />
         </button>
         
-        <h1 className="text-xl font-semibold">Kimi</h1>
+        <h1 className="text-xl font-semibold">Dawinix</h1>
         
         <button
           onClick={() => setShowSettings(!showSettings)}
