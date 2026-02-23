@@ -221,7 +221,7 @@ export function ParentalControlsSettings() {
               )}
 
               <p className="text-sm text-muted-foreground">
-                If your family member is new to Haitian ChatGPT, they'll be asked to create an account.
+                If your family member is new to Dawinix, they'll be asked to create an account.
               </p>
 
               {/* Role Selection */}
