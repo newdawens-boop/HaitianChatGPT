@@ -110,7 +110,9 @@ Deno.serve(async (req) => {
     }
 
     // Security: Basic spam detection
-    const lastUserMessage = messages[messages.length - 1]?.content || '';
+    if (condition) {
+  lastUserMessage = ...
+}
     const spamPatterns = [
       /(.{1,3})\1{10,}/i, // Repeated characters
       /(https?:\/\/[^\s]+){5,}/gi, // Multiple URLs
