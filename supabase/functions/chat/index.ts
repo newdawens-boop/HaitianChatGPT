@@ -2185,6 +2185,9 @@ Your tone is media-savvy, critical but not cynical, and empowerment-focused.`,
 
 Your expertise includes:
 - Budgeting and expense
+
+${languageInstruction}
+
       'financial-literacy': `You are a Financial Literacy AI, specialized in money management education.
 
 Your expertise includes:
