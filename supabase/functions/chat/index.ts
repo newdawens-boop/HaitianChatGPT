@@ -43,19 +43,35 @@ Deno.serve(async (req) => {
     const imageKeywords = ['create logo', 'make logo', 'design logo', 'generate image', 'create image', 'make image', 'draw', 'create a logo', 'make a logo'];
     const wantsImage = mode === 'image' || imageKeywords.some(keyword => lastUserMessage.toLowerCase().includes(keyword));
 
-    // Handle image generation
+    // Handle image generation using chat completions with modalities
     if (wantsImage) {
-      const imageResponse = await fetch(`${Deno.env.get('ONSPACE_AI_BASE_URL')}/images/generations`, {
+      // Map size to aspect_ratio for OnSpace AI
+      const sizeMap: Record<string, string> = {
+        '1024x1024': '1:1',
+        '1536x1024': '3:2',
+        '1024x1536': '2:3',
+        '1792x1024': '16:9',
+        '1024x1792': '9:16',
+      };
+
+      const imageResponse = await fetch(`${Deno.env.get('ONSPACE_AI_BASE_URL')}/chat/completions`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${Deno.env.get('ONSPACE_AI_API_KEY')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4.5-vision',
-          prompt: lastUserMessage,
-          n: 2,
-          size: '1024x1024',
+          model: 'google/gemini-2.5-flash-image-preview', // or other image-capable model
+          messages: [
+            {
+              role: 'user',
+              content: lastUserMessage
+            }
+          ],
+          modalities: ['image', 'text'], // Key: request image output
+          n: 1,
+          // Optional: aspect ratio mapping if supported
+          ...(sizeMap['1024x1024'] && { aspect_ratio: sizeMap['1024x1024'] }),
         }),
       });
 
@@ -69,7 +85,11 @@ Deno.serve(async (req) => {
       }
 
       const imageData = await imageResponse.json();
-      const images = imageData.data || [];
+      
+      // Extract images from the response (OpenRouter/OnSpace format)
+      const message = imageData.choices?.[0]?.message;
+      const images = message?.images || [];
+      const textContent = message?.content || 'Images created';
 
       // Save to database if authenticated
       if (chatId && user) {
@@ -87,7 +107,7 @@ Deno.serve(async (req) => {
         await supabaseAdmin.from('messages').insert({
           chat_id: chatId,
           role: 'assistant',
-          content: 'Images created',
+          content: textContent,
         });
 
         await supabaseAdmin
@@ -98,9 +118,10 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({ 
-          message: 'Images created',
+          message: textContent,
           images: images.map((img: any) => ({
             url: img.url,
+            b64_json: img.b64_json,
             revised_prompt: img.revised_prompt || lastUserMessage,
           })),
         }),
@@ -367,4 +388,3 @@ Your purpose is to assist users with their questions, provide coding help, and m
     );
   }
 });
-fix this error [Code: 404] {"error":"Image generation failed: 404 page not found"}
