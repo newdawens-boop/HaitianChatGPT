@@ -248,3 +248,4 @@ export function WelcomePage() {
     </div>
   );
 }
+after 20 free message auto send to login for more or kick them out and put a login button if they want to login to dont stay in free user
