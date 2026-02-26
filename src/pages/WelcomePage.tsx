@@ -33,10 +33,10 @@ export function WelcomePage() {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    // Check 20 message limit for guests
-    if (isLimitReached()) {
+    // Check 20 message limit for guests - redirect to login
+    if (!user && isLimitReached()) {
       toast.error('You have reached the 20 message limit. Please log in to continue.');
-      navigate('/auth');
+      setTimeout(() => navigate('/auth'), 1500);
       return;
     }
 
@@ -73,6 +73,14 @@ export function WelcomePage() {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+
+      // Check if guest has reached limit after this message
+      if (!user && isLimitReached()) {
+        setTimeout(() => {
+          toast.info('You have used all 20 free messages. Redirecting to login...');
+          setTimeout(() => navigate('/auth'), 2000);
+        }, 1000);
+      }
     } catch (error: any) {
       toast.error(error.message || 'Failed to send message');
     } finally {
@@ -239,7 +247,21 @@ export function WelcomePage() {
 
           <div className="mt-2 sm:mt-3 text-center px-2">
             <p className="text-[10px] sm:text-xs text-muted-foreground">
-              {!user && `${20 - messageCount} free messages remaining. `}
+              {!user && (
+                <>
+                  <span className={messageCount >= 15 ? 'text-orange-500 font-medium' : ''}>
+                    {20 - messageCount} free messages remaining.
+                  </span>
+                  {' '}
+                  <button
+                    onClick={() => navigate('/auth')}
+                    className="underline hover:text-primary transition-colors"
+                  >
+                    Login for unlimited
+                  </button>
+                  {' • '}
+                </>
+              )}
               Dawinix can make mistakes. Check important info.
             </p>
           </div>
@@ -248,4 +270,3 @@ export function WelcomePage() {
     </div>
   );
 }
-after 20 free message auto send to login for more or kick them out and put a login button if they want to login to dont stay in free user
