@@ -367,3 +367,4 @@ Your purpose is to assist users with their questions, provide coding help, and m
     );
   }
 });
+fix this error [Code: 404] {"error":"Image generation failed: 404 page not found"}
