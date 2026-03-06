@@ -113,18 +113,18 @@ const MODELS = {
     description: 'Cutting-edge multi-modal reasoning, highest intelligence',
   },
   
-  // Image Generation Models
-  'gemini-2.5-flash-image': {
-    id: 'google/gemini-2.5-flash-image-preview',
-    type: 'image',
-    capabilities: ['rapid-generation', 'visual-outputs', 'creative-assets'],
-    maxTokens: 4096,
-    supportsStreaming: false,
-    costTier: 'medium',
-    description: 'Specialized for rapid image generation and visual outputs',
-    supportedSizes: ['1024x1024', '1536x1024', '1024x1536', '1792x1024', '1024x1792'],
-    defaultSize: '1024x1024',
-  },
+ // Image Generation Models
+'gemini-image': {
+  id: 'google/gemini-2.0-flash-exp',
+  type: 'image',
+  capabilities: ['rapid-generation', 'visual-outputs', 'creative-assets'],
+  maxTokens: 4096,
+  supportsStreaming: false,
+  costTier: 'medium',
+  description: 'Rapid image generation with Gemini',
+  supportedSizes: ['1024x1024', '1536x1024', '1024x1536'],
+  defaultSize: '1024x1024',
+},
   'gemini-3-pro-image': {
     id: 'google/gemini-3-pro-image-preview',
     type: 'image',
