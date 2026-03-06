@@ -114,14 +114,14 @@ const MODELS = {
   },
   
  // Image Generation Models
-'gemini-image': {
-  id: 'google/gemini-2.0-flash-exp',
+'gemini-2.5-flash-image': {
+  id: 'google/gemini-2.5-flash-image', // or whatever the correct API ID is
   type: 'image',
   capabilities: ['rapid-generation', 'visual-outputs', 'creative-assets'],
   maxTokens: 4096,
   supportsStreaming: false,
-  costTier: 'medium',
-  description: 'Rapid image generation with Gemini',
+  costTier: 'low',
+  description: 'Fast image generation with Gemini 2.5 Flash',
   supportedSizes: ['1024x1024', '1536x1024', '1024x1536'],
   defaultSize: '1024x1024',
 },
