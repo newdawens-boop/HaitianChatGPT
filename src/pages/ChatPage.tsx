@@ -129,3 +129,4 @@ export function ChatPage() {
     </div>
   );
 }
+Please remove the vertical scroll bar from the interface so that the content fits entirely without scrolling in all page https://files.catbox.moe/fjjr7a.jpeg
