@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Check, Copy } from 'lucide-react';
+import { Check, Copy, Play, Download, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface CodeBlockProps {
   code: string;
@@ -9,6 +10,9 @@ interface CodeBlockProps {
 export function CodeBlock({ code, language = 'plaintext' }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
+  const [isRunning, setIsRunning] = useState(false);
+  const [output, setOutput] = useState<string>('');
+  const [showOutput, setShowOutput] = useState(false);
   
   // Auto-detect language if not specified
   const detectedLanguage = language === 'plaintext' ? detectLanguage(code) : language;
@@ -29,6 +33,64 @@ export function CodeBlock({ code, language = 'plaintext' }: CodeBlockProps) {
     await navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownload = () => {
+    const extensions: Record<string, string> = {
+      python: 'py',
+      py: 'py',
+      javascript: 'js',
+      js: 'js',
+      typescript: 'ts',
+      ts: 'ts',
+      html: 'html',
+      css: 'css',
+      bash: 'sh',
+      shell: 'sh',
+      json: 'json',
+      plaintext: 'txt',
+    };
+
+    const ext = extensions[detectedLanguage.toLowerCase()] || 'txt';
+    const filename = `code.${ext}`;
+    const blob = new Blob([code], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success(`Downloaded as ${filename}`);
+  };
+
+  const handleRun = async () => {
+    if (!isPython) {
+      toast.error('Code execution is currently only supported for Python');
+      return;
+    }
+
+    setIsRunning(true);
+    setShowOutput(true);
+    setOutput('Running code...');
+
+    try {
+      // Mock Python execution
+      // In real implementation, you would call a backend API or use Pyodide
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Simulate output
+      const mockOutput = `>>> Running Python code...\n\nCode executed successfully!\n\nNote: This is a demo. For actual Python execution, integrate with a backend service or Pyodide.`;
+      
+      setOutput(mockOutput);
+      toast.success('Code executed');
+    } catch (error: any) {
+      setOutput(`Error: ${error.message}`);
+      toast.error('Execution failed');
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   // Professional syntax highlighting colors
@@ -122,7 +184,24 @@ export function CodeBlock({ code, language = 'plaintext' }: CodeBlockProps) {
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          {isPython && (
+            <button
+              onClick={handleRun}
+              disabled={isRunning}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-md font-medium"
+            >
+              <Play className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{isRunning ? 'Running...' : 'Run'}</span>
+            </button>
+          )}
+          <button
+            onClick={handleDownload}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-gray-700 transition-colors rounded-md font-medium"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Download</span>
+          </button>
           <button
             onClick={handleCopy}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-gray-700 transition-colors rounded-md font-medium"
@@ -135,7 +214,7 @@ export function CodeBlock({ code, language = 'plaintext' }: CodeBlockProps) {
             ) : (
               <>
                 <Copy className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Copy code</span>
+                <span className="hidden sm:inline">Copy</span>
               </>
             )}
           </button>
@@ -158,6 +237,24 @@ export function CodeBlock({ code, language = 'plaintext' }: CodeBlockProps) {
             {highlightCode(code, detectedLanguage)}
           </code>
         </pre>
+      )}
+      
+      {/* Output Section */}
+      {showOutput && output && (
+        <div className="border-t border-gray-700 bg-[#1E2127]">
+          <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700">
+            <span className="text-xs text-gray-400 font-mono">OUTPUT</span>
+            <button
+              onClick={() => setShowOutput(false)}
+              className="p-1 hover:bg-gray-700 rounded transition-colors"
+            >
+              <X className="w-3.5 h-3.5 text-gray-400" />
+            </button>
+          </div>
+          <pre className="p-4 text-xs sm:text-sm font-mono text-[#98C379] whitespace-pre-wrap max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+            {output}
+          </pre>
+        </div>
       )}
     </div>
   );

@@ -4,6 +4,7 @@ import { ChatHeader } from '@/components/features/ChatHeader';
 import { ChatMessage } from '@/components/features/ChatMessage';
 import { ChatInput } from '@/components/features/ChatInput';
 import { ImagePlaceholder } from '@/components/features/ImagePlaceholder';
+import { SourcesSidebar } from '@/components/features/SourcesSidebar';
 import { GuestLimitModal } from '@/components/modals/GuestLimitModal';
 import { WelcomeModal } from '@/components/modals/WelcomeModal';
 import { useChatStore } from '@/stores/chatStore';
@@ -15,7 +16,7 @@ import { chatService } from '@/lib/chatService';
 export function ChatPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { messages, currentChatId, isLoading, loadingStatus } = useChatStore();
+  const { messages, currentChatId, isLoading, loadingStatus, sources, showSourcesSidebar, searchQuery, setShowSourcesSidebar } = useChatStore();
   const { isGuestMode, isLimitReached, hasSeenWelcome } = useGuestStore();
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -126,6 +127,14 @@ export function ChatPage() {
       </div>
 
       <ChatInput />
+      
+      {/* Sources Sidebar */}
+      <SourcesSidebar
+        isOpen={showSourcesSidebar}
+        onClose={() => setShowSourcesSidebar(false)}
+        sources={sources}
+        searchQuery={searchQuery || undefined}
+      />
     </div>
   );
 }

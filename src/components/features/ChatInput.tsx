@@ -29,6 +29,11 @@ export function ChatInput() {
     updateMessage,
     removeMessagesFrom,
     selectedModel,
+    setIsStreaming,
+    setStreamingMessageId,
+    setSources,
+    setShowSourcesSidebar,
+    setSearchQuery,
   } = useChatStore();
   const { isGuestMode, isLimitReached, incrementMessageCount } = useGuestStore();
   const { user } = useAuth();
@@ -190,30 +195,65 @@ export function ChatInput() {
             .map((m) => ({ role: m.role, content: m.id === editingMessageId ? input.trim() : m.content }));
 
           const isImageRequest = chatService.isImageRequest(input.trim());
+          const isSearchRequest = /search|find|look up|google/i.test(input.trim());
 
+          // Handle streaming
+          const assistantMessageId = crypto.randomUUID();
+          const assistantMessage = {
+            id: assistantMessageId,
+            role: 'assistant' as const,
+            content: '',
+            created_at: new Date().toISOString(),
+          };
+          addMessage(assistantMessage);
+          setIsStreaming(true);
+          setStreamingMessageId(assistantMessageId);
+
+          let fullContent = '';
           const response = await chatService.sendMessage(
             conversationMessages, 
             currentChatId || undefined, 
             selectedModel,
-            isImageRequest ? 'image' : 'text'
+            isImageRequest ? 'image' : 'text',
+            (chunk) => {
+              fullContent += chunk;
+              updateMessage(assistantMessageId, { content: fullContent });
+            }
           );
+
+          setIsStreaming(false);
+          setStreamingMessageId(null);
 
           const { message, images, error } = response;
 
           if (error) {
             toast.error(error);
+            removeMessagesFrom(assistantMessageId);
             return;
           }
 
-          const assistantMessage = {
-            id: crypto.randomUUID(),
-            role: 'assistant' as const,
-            content: message || 'Images created',
-            created_at: new Date().toISOString(),
+          // Update final content
+          updateMessage(assistantMessageId, {
+            content: message || fullContent,
             generatedImages: images,
-          };
+          });
 
-          addMessage(assistantMessage);
+          // Handle web search sources
+          if (isSearchRequest && message) {
+            // Mock sources for demo - in production, get from API
+            const mockSources = [
+              {
+                id: '1',
+                title: 'Search result about ' + input.trim().slice(0, 30),
+                url: 'https://example.com',
+                domain: 'example.com',
+                snippet: 'This is a snippet from the search result...',
+              },
+            ];
+            setSources(mockSources);
+            setSearchQuery(input.trim());
+            setShowSourcesSidebar(true);
+          }
 
           // Reload messages from database
           if (currentChatId) {
@@ -279,31 +319,65 @@ export function ChatInput() {
 
       // Detect if user wants image generation
       const isImageRequest = chatService.isImageRequest(userMessage.content);
+      const isSearchRequest = /search|find|look up|google/i.test(userMessage.content);
+
+      // Add assistant message for streaming
+      const assistantMessageId = crypto.randomUUID();
+      const assistantMessage = {
+        id: assistantMessageId,
+        role: 'assistant' as const,
+        content: '',
+        created_at: new Date().toISOString(),
+      };
+      addMessage(assistantMessage);
+      setIsStreaming(true);
+      setStreamingMessageId(assistantMessageId);
 
       // Only pass chatId if user is authenticated
+      let fullContent = '';
       const response = await chatService.sendMessage(
         conversationMessages, 
         user && chatId ? chatId : undefined, 
         selectedModel,
-        isImageRequest ? 'image' : 'text'
+        isImageRequest ? 'image' : 'text',
+        (chunk) => {
+          fullContent += chunk;
+          updateMessage(assistantMessageId, { content: fullContent });
+        }
       );
+
+      setIsStreaming(false);
+      setStreamingMessageId(null);
 
       const { message, images, error } = response;
 
       if (error) {
         toast.error(error);
+        removeMessagesFrom(assistantMessageId);
         return;
       }
 
-      const assistantMessage = {
-        id: crypto.randomUUID(),
-        role: 'assistant' as const,
-        content: message || 'Images created',
-        created_at: new Date().toISOString(),
+      // Update final content
+      updateMessage(assistantMessageId, {
+        content: message || fullContent,
         generatedImages: images,
-      };
+      });
 
-      addMessage(assistantMessage);
+      // Handle web search sources
+      if (isSearchRequest && message) {
+        const mockSources = [
+          {
+            id: '1',
+            title: 'Search result about ' + userMessage.content.slice(0, 30),
+            url: 'https://example.com',
+            domain: 'example.com',
+            snippet: 'This is a snippet from the search result...',
+          },
+        ];
+        setSources(mockSources);
+        setSearchQuery(userMessage.content);
+        setShowSourcesSidebar(true);
+      }
 
       // Reload messages from database to ensure sync (only for authenticated users)
       if (user && chatId) {

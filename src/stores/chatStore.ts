@@ -12,6 +12,15 @@ interface ChatState {
   editingMessageId: string | null;
   isStreaming: boolean;
   streamingMessageId: string | null;
+  sources: Array<{
+    id: string;
+    title: string;
+    url: string;
+    domain: string;
+    snippet: string;
+  }>;
+  showSourcesSidebar: boolean;
+  searchQuery: string | null;
   setChats: (chats: Chat[]) => void;
   setCurrentChatId: (id: string | null) => void;
   setMessages: (messages: Message[]) => void;
@@ -26,6 +35,9 @@ interface ChatState {
   setEditingMessageId: (id: string | null) => void;
   setIsStreaming: (streaming: boolean) => void;
   setStreamingMessageId: (id: string | null) => void;
+  setSources: (sources: Array<any>) => void;
+  setShowSourcesSidebar: (show: boolean) => void;
+  setSearchQuery: (query: string | null) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -39,6 +51,9 @@ export const useChatStore = create<ChatState>((set) => ({
   editingMessageId: null,
   isStreaming: false,
   streamingMessageId: null,
+  sources: [],
+  showSourcesSidebar: false,
+  searchQuery: null,
   setChats: (chats) => set({ chats }),
   setCurrentChatId: (id) => set({ currentChatId: id }),
   setMessages: (messages) => set({ messages }),
@@ -58,4 +73,7 @@ export const useChatStore = create<ChatState>((set) => ({
   setEditingMessageId: (id) => set({ editingMessageId: id }),
   setIsStreaming: (streaming) => set({ isStreaming: streaming }),
   setStreamingMessageId: (id) => set({ streamingMessageId: id }),
+  setSources: (sources) => set({ sources }),
+  setShowSourcesSidebar: (show) => set({ showSourcesSidebar: show }),
+  setSearchQuery: (query) => set({ searchQuery: query }),
 }));
