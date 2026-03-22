@@ -8,6 +8,8 @@ interface CodeBlockProps {
 
 export function CodeBlock({ code, language = 'plaintext' }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
+  const isHTML = language?.toLowerCase() === 'html' || code.trim().startsWith('<!DOCTYPE') || code.trim().startsWith('<html');
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(code);
@@ -78,7 +80,29 @@ export function CodeBlock({ code, language = 'plaintext' }: CodeBlockProps) {
   return (
     <div className="my-4 rounded-xl overflow-hidden bg-[#282C34] shadow-lg border border-gray-700">
       <div className="flex items-center justify-between px-3 sm:px-4 py-2 bg-[#21252B] border-b border-gray-700">
-        <span className="text-xs text-gray-400 font-mono uppercase tracking-wide">{language}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-400 font-mono uppercase tracking-wide">{language}</span>
+          {isHTML && (
+            <div className="flex items-center gap-1 ml-2">
+              <button
+                onClick={() => setShowPreview(true)}
+                className={`px-2 py-0.5 text-xs rounded transition-colors ${
+                  showPreview ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Preview
+              </button>
+              <button
+                onClick={() => setShowPreview(false)}
+                className={`px-2 py-0.5 text-xs rounded transition-colors ${
+                  !showPreview ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Code
+              </button>
+            </div>
+          )}
+        </div>
         <button
           onClick={handleCopy}
           className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-gray-700 transition-colors rounded-md"
@@ -96,12 +120,24 @@ export function CodeBlock({ code, language = 'plaintext' }: CodeBlockProps) {
           )}
         </button>
       </div>
-      <pre className="p-3 sm:p-4 overflow-x-auto max-h-[60vh] sm:max-h-[70vh] overflow-y-auto">
-        <code className="text-xs sm:text-sm font-mono leading-relaxed text-[#ABB2BF]">
-          {highlightCode(code, language)}
-        </code>
-      </pre>
+      
+      {isHTML && showPreview ? (
+        <div className="bg-white p-4 min-h-[200px] max-h-[600px] overflow-auto">
+          <iframe
+            srcDoc={code}
+            className="w-full min-h-[200px] h-full border-0"
+            sandbox="allow-scripts"
+            title="HTML Preview"
+            style={{ height: '500px' }}
+          />
+        </div>
+      ) : (
+        <pre className="p-3 sm:p-4 overflow-x-auto max-h-[60vh] sm:max-h-[70vh] overflow-y-auto">
+          <code className="text-xs sm:text-sm font-mono leading-relaxed text-[#ABB2BF]">
+            {highlightCode(code, language)}
+          </code>
+        </pre>
+      )}
     </div>
   );
 }
-hello ai please when I asked for an HTML file in a code block, but it didn’t display properly on the screen it show like this:https://files.catbox.moe/wvsk4m.jpeg but i want it like this:https://files.catbox.moe/2wjmw0.jpeg,https://files.catbox.moe/ohocas.jpeg real preview mach for all code require.,
