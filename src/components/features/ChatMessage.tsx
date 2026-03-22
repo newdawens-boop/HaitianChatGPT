@@ -1,5 +1,5 @@
 import { Message } from '@/types/chat';
-import { Copy, ThumbsUp, ThumbsDown, Share2, RotateCw, MoreHorizontal, ChevronLeft, ChevronRight, Edit2 } from 'lucide-react';
+import { Copy, ThumbsUp, ThumbsDown, Share2, RotateCw, MoreHorizontal, Edit2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { MessageActionsMenu } from '../modals/MessageActionsMenu';
@@ -286,31 +286,16 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
             {/* Actions */}
             {!isUser && (
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                {/* Pagination for long messages */}
-                {totalMessages > 1 && (
-                  <div className="flex items-center gap-1 mr-2">
-                    <button className="p-1.5 hover:bg-accent rounded transition-colors">
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <span className="text-xs text-muted-foreground">
-                      {messageIndex}/{totalMessages}
-                    </span>
-                    <button className="p-1.5 hover:bg-accent rounded transition-colors">
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-
                 <button
                   onClick={handleCopy}
-                  className="p-1.5 hover:bg-accent rounded transition-colors"
+                  className="p-1.5 hover:bg-accent rounded-lg transition-colors"
                   title="Copy"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
                 <button
                   onClick={handleLike}
-                  className={`p-1.5 hover:bg-accent rounded transition-colors ${
+                  className={`p-1.5 hover:bg-accent rounded-lg transition-colors ${
                     isLiked ? 'text-primary' : ''
                   }`}
                   title="Good response"
@@ -319,7 +304,7 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
                 </button>
                 <button
                   onClick={handleDislike}
-                  className={`p-1.5 hover:bg-accent rounded transition-colors ${
+                  className={`p-1.5 hover:bg-accent rounded-lg transition-colors ${
                     isDisliked ? 'text-destructive' : ''
                   }`}
                   title="Bad response"
@@ -328,21 +313,21 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
                 </button>
                 <button
                   onClick={handleShare}
-                  className="p-1.5 hover:bg-accent rounded transition-colors"
+                  className="p-1.5 hover:bg-accent rounded-lg transition-colors"
                   title="Share"
                 >
                   <Share2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={handleTryAgain}
-                  className="p-1.5 hover:bg-accent rounded transition-colors"
+                  className="p-1.5 hover:bg-accent rounded-lg transition-colors"
                   title="Regenerate"
                 >
                   <RotateCw className="w-4 h-4" />
                 </button>
                 <button
                   onClick={handleMoreOptions}
-                  className="p-1.5 hover:bg-accent rounded transition-colors"
+                  className="p-1.5 hover:bg-accent rounded-lg transition-colors"
                   title="More options"
                 >
                   <MoreHorizontal className="w-4 h-4" />
@@ -354,14 +339,14 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={handleCopy}
-                  className="p-1.5 hover:bg-accent rounded transition-colors"
+                  className="p-1.5 hover:bg-accent rounded-lg transition-colors"
                   title="Copy"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
                 <button
                   onClick={handleEdit}
-                  className="p-1.5 hover:bg-accent rounded transition-colors"
+                  className="p-1.5 hover:bg-accent rounded-lg transition-colors"
                   title="Edit"
                 >
                   <Edit2 className="w-4 h-4" />
@@ -386,4 +371,3 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
     </div>
   );
 }
-hello ai if you see this dont skip make the change please fix remove the chevron make the page simple and beatiful remove chevron from everywhere in chat only in code block please.,
