@@ -104,3 +104,4 @@ export function CodeBlock({ code, language = 'plaintext' }: CodeBlockProps) {
     </div>
   );
 }
+hello ai please when I asked for an HTML file in a code block, but it didn’t display properly on the screen it show like this:https://files.catbox.moe/wvsk4m.jpeg but i want it like this:https://files.catbox.moe/2wjmw0.jpeg,https://files.catbox.moe/ohocas.jpeg real preview mach for all code require.,
