@@ -386,3 +386,4 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
     </div>
   );
 }
+hello ai if you see this dont skip make the change please fix remove the chevron make the page simple and beatiful remove chevron from everywhere in chat only in code block please.,
