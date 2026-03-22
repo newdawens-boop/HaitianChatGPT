@@ -295,3 +295,4 @@ export function WelcomePage() {
     </div>
   );
 }
+hello ai if you see this message dont skip make change please remove the up down from all chat like this https://files.catbox.moe/fjjr7a.jpeg read the photo remove this make the page simple fix when i send message it disapear after fix all message saved fix all bug .,
