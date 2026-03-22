@@ -6,7 +6,6 @@ import { useGuestStore } from '@/stores/guestStore';
 import { useAuth } from '@/lib/auth';
 import { WelcomeModal } from '@/components/modals/WelcomeModal';
 import { AttachmentModal } from '@/components/modals/AttachmentModal';
-import { UserMenu } from '@/components/modals/UserMenu';
 import { ChatMessage } from '@/components/features/ChatMessage';
 import { Message } from '@/types/chat';
 import { chatService } from '@/lib/chatService';
@@ -123,9 +122,6 @@ export function WelcomePage() {
         onPickMedia={handlePickMedia}
       />
 
-      {/* User Menu */}
-      <UserMenu />
-
       {/* Header */}
       <header className="flex items-center justify-between px-3 sm:px-4 py-3 sm:py-3.5 border-b border-border/40">
         <button
@@ -136,12 +132,11 @@ export function WelcomePage() {
           <Menu className="w-5 h-5" />
         </button>
         
-        <button
-          onClick={() => setUserMenuOpen(true)}
-          className="flex items-center gap-2 px-3 py-1.5 hover:bg-accent/50 rounded-lg transition-colors"
-        >
-          <span className="text-sm font-medium">{user?.username || 'Dawinix'}</span>
-        </button>
+        <button 
+  className="flex items-center gap-2 px-3 py-1.5 hover:bg-accent/50 rounded-lg transition-colors"
+>
+  <span className="text-sm font-medium">{user?.username || 'Dawinix'}</span>
+</button>
         
         <div className="flex items-center gap-1">
           <button
