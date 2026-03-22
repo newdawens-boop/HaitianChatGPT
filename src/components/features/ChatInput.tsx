@@ -1,26 +1,37 @@
-import { useState, useRef, useEffect } from 'react';
-import { Mic, Plus, ArrowUp, Edit2 } from 'lucide-react';
+// components/ChatInput.tsx
+import { useState, useCallback, useEffect } from 'react';
+import { Mic, Plus, ArrowUp, Edit2, X, FileText } from 'lucide-react';
 import { useChatStore } from '@/stores/chatStore';
 import { useGuestStore } from '@/stores/guestStore';
 import { useAuth } from '@/lib/auth';
-import { chatService } from '@/lib/chatService';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { AttachmentMenu } from '../modals/AttachmentMenu';
 import { useModalStore } from '@/stores/modalStore';
+import { useSpeechToText } from '@/hooks/useSpeechToText';
+import { useAutoResize } from '@/hooks/useAutoResize';
+import { useChatSubmission } from '@/hooks/useChatSubmission';
+import { cn } from '@/lib/utils';
 
+interface FileAttachment {
+  file: File;
+  id: string;
+  previewUrl?: string;
+}
 
 export function ChatInput() {
   const [input, setInput] = useState('');
-  const [isRecording, setIsRecording] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const [files, setFiles] = useState<FileAttachment[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  
+  const navigate = useNavigate();
+  const { setAttachmentMenuOpen } = useModalStore();
+  
   const { 
     currentChatId, 
     setCurrentChatId, 
     messages, 
     addMessage, 
-    setIsLoading, 
     isLoading, 
     setMessages,
     setLoadingStatus,
@@ -28,139 +39,148 @@ export function ChatInput() {
     setEditingMessageId,
     updateMessage,
     removeMessagesFrom,
-    selectedModel,
     setIsStreaming,
     setStreamingMessageId,
     setSources,
     setShowSourcesSidebar,
     setSearchQuery,
   } = useChatStore();
+  
   const { isGuestMode, isLimitReached, incrementMessageCount } = useGuestStore();
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const { setAttachmentMenuOpen } = useModalStore();
-
-  // Disable features for guests
+  
   const isGuest = isGuestMode || !user;
   const canSendMessage = !isGuest || !isLimitReached();
 
-  // Speech recognition setup
-  useEffect(() => {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      // Speech recognition is available
+  const { textareaRef, resize } = useAutoResize({ maxRows: 10 });
+  
+  const { submitMessage, isSubmitting } = useChatSubmission({
+    currentChatId,
+    userId: user?.id || null,
+    isGuest,
+    isLimitReached,
+    onError: (error) => {
+      if (error.message === 'GUEST_LIMIT_REACHED') {
+        toast.error('Message limit reached. Please log in to continue.');
+        navigate('/auth');
+      } else {
+        toast.error(error.message || 'Failed to send message');
+      }
     }
+  });
+
+  const handleTranscript = useCallback((text: string) => {
+    setInput(prev => {
+      const newValue = prev ? `${prev} ${text}` : text;
+      // Trigger resize after state update
+      setTimeout(resize, 0);
+      return newValue;
+    });
+  }, [resize]);
+
+  const { isListening, isSupported: isSpeechSupported, start: startListening, stop: stopListening } = useSpeechToText({
+    lang: 'en-US',
+    continuous: false,
+    interimResults: true,
+    onTranscript: handleTranscript,
+    onError: (error) => {
+      toast.error(`Speech recognition error: ${error}`);
+    }
+  });
+
+  // Handle editing mode
+  useEffect(() => {
+    if (!editingMessageId) {
+      setInput('');
+      return;
+    }
+
+    const message = messages.find(m => m.id === editingMessageId);
+    if (message) {
+      setInput(message.content);
+      resize();
+      textareaRef.current?.focus();
+    }
+  }, [editingMessageId, messages, resize, textareaRef]);
+
+  // Auto-resize when input changes
+  useEffect(() => {
+    resize();
+  }, [input, resize]);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
   }, []);
 
-  // Set input when editing
-  useEffect(() => {
-    if (editingMessageId) {
-      const message = messages.find(m => m.id === editingMessageId);
-      if (message) {
-        setInput(message.content);
-      }
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
     }
-  }, [editingMessageId, messages]);
+  }, [input, files, isLoading, isSubmitting]);
 
-  const handleVoiceInput = async () => {
+  const handleVoiceToggle = useCallback(() => {
     if (isGuest) {
-      toast.error('Voice input is available after logging in');
+      toast.error('Voice input requires login');
       navigate('/auth');
       return;
     }
 
-    if (isRecording) {
-      // Stop recording
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-        mediaRecorderRef.current.stop();
-      }
-      setIsRecording(false);
-      return;
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+      toast.success('Listening... Speak now');
     }
+  }, [isGuest, isListening, startListening, stopListening, navigate]);
 
-    // Use Web Speech API for voice to text
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      toast.error('Speech recognition not supported in this browser');
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = 'en-US';
-
-    recognition.onstart = () => {
-      setIsRecording(true);
-      toast.success('Listening...');
-    };
-
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setInput(transcript);
-      toast.success('Voice input captured');
-    };
-
-    recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
-      toast.error('Failed to recognize speech');
-      setIsRecording(false);
-    };
-
-    recognition.onend = () => {
-      setIsRecording(false);
-    };
-
-    recognition.start();
-  };
-
-  const handleFileSelect = (files: File[]) => {
+  const handleFileSelect = useCallback((selectedFiles: File[]) => {
     if (isGuest) {
-      toast.error('File uploads are available after logging in');
-      navigate('/auth');
-      return;
-    }
-    setSelectedFiles(files);
-    toast.success(`${files.length} file(s) attached`);
-  };
-
-  const determineLoadingStatus = (text: string, hasFiles: boolean): string => {
-    const lowerText = text.toLowerCase();
-    
-    if (hasFiles) {
-      const hasImage = selectedFiles.some(f => f.type.startsWith('image/'));
-      if (hasImage) return 'Analyzing...';
-      return 'Processing file...';
-    }
-    
-    if (lowerText.includes('search') || lowerText.includes('find') || lowerText.includes('look up')) {
-      return 'Searching the web...';
-    }
-    
-    if (lowerText.includes('create image') || lowerText.includes('generate image') || 
-        lowerText.includes('create logo') || lowerText.includes('make a logo') ||
-        lowerText.includes('design a') || lowerText.includes('draw')) {
-      return 'Creating image...';
-    }
-    
-    return 'Thinking...';
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
-
-    // Check guest limit
-    if (isGuest && isLimitReached()) {
-      toast.error('Message limit reached. Please log in to continue.');
+      toast.error('File uploads require login');
       navigate('/auth');
       return;
     }
 
-    // Create guest chat if needed
+    const newAttachments: FileAttachment[] = selectedFiles.map(file => ({
+      file,
+      id: crypto.randomUUID(),
+      previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
+    }));
+
+    setFiles(prev => [...prev, ...newAttachments]);
+    toast.success(`${selectedFiles.length} file(s) attached`);
+  }, [isGuest, navigate]);
+
+  const removeFile = useCallback((id: string) => {
+    setFiles(prev => {
+      const file = prev.find(f => f.id === id);
+      if (file?.previewUrl) {
+        URL.revokeObjectURL(file.previewUrl);
+      }
+      return prev.filter(f => f.id !== id);
+    });
+  }, []);
+
+  const clearFiles = useCallback(() => {
+    files.forEach(f => {
+      if (f.previewUrl) URL.revokeObjectURL(f.previewUrl);
+    });
+    setFiles([]);
+  }, [files]);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditingMessageId(null);
+    setInput('');
+    clearFiles();
+  }, [setEditingMessageId, clearFiles]);
+
+  const handleSubmit = useCallback(async () => {
+    const trimmedInput = input.trim();
+    if (!trimmedInput || isLoading || isSubmitting) return;
+
+    // Guest chat creation
     if (isGuest && !currentChatId) {
-      const guestChatId = crypto.randomUUID();
-      setCurrentChatId(guestChatId);
+      setCurrentChatId(crypto.randomUUID());
     }
 
     if (!user && !isGuest) {
@@ -168,333 +188,288 @@ export function ChatInput() {
       return;
     }
 
-    if (editingMessageId) {
-      // Edit existing message
-      const messageIndex = messages.findIndex(m => m.id === editingMessageId);
-      if (messageIndex >= 0) {
-        // Update the user message
-        updateMessage(editingMessageId, { content: input.trim() });
+    const fileList = files.map(f => f.file);
+    
+    try {
+      if (editingMessageId) {
+        // Handle edit mode
+        const messageIndex = messages.findIndex(m => m.id === editingMessageId);
+        if (messageIndex === -1) return;
+
+        updateMessage(editingMessageId, { content: trimmedInput });
         
-        // Remove all messages after this one (including AI response)
-        const nextMessages = messages.slice(messageIndex + 1);
-        if (nextMessages.length > 0) {
-          removeMessagesFrom(nextMessages[0].id);
+        const nextMessage = messages[messageIndex + 1];
+        if (nextMessage) {
+          removeMessagesFrom(nextMessage.id);
         }
         
         setEditingMessageId(null);
         setInput('');
-        setIsLoading(true);
         
-        // Determine loading status
-        const status = determineLoadingStatus(input.trim(), selectedFiles.length > 0);
-        setLoadingStatus(status);
+        const conversationMessages = messages
+          .slice(0, messageIndex + 1)
+          .map(m => ({ 
+            role: m.role, 
+            content: m.id === editingMessageId ? trimmedInput : m.content 
+          }));
 
-        try {
-          const conversationMessages = messages
-            .slice(0, messageIndex + 1)
-            .map((m) => ({ role: m.role, content: m.id === editingMessageId ? input.trim() : m.content }));
+        await submitMessage(trimmedInput, fileList, conversationMessages, {
+          addMessage,
+          updateMessage,
+          removeMessagesFrom,
+          setLoadingStatus,
+          setIsStreaming,
+          setStreamingMessageId,
+          setSources,
+          setShowSourcesSidebar,
+          setSearchQuery,
+        });
 
-          const isImageRequest = chatService.isImageRequest(input.trim());
-          const isSearchRequest = /search|find|look up|google/i.test(input.trim());
+        if (user && currentChatId) {
+          const updated = await chatService.getChatMessages(currentChatId);
+          setMessages(updated);
+        }
+      } else {
+        // Handle new message
+        const userMessage = {
+          id: crypto.randomUUID(),
+          role: 'user' as const,
+          content: trimmedInput,
+          created_at: new Date().toISOString(),
+          attachments: files.map(f => ({
+            name: f.file.name,
+            type: f.file.type,
+            url: f.previewUrl || '',
+          })),
+        };
 
-          // Handle streaming
-          const assistantMessageId = crypto.randomUUID();
-          const assistantMessage = {
-            id: assistantMessageId,
-            role: 'assistant' as const,
-            content: '',
-            created_at: new Date().toISOString(),
-          };
-          addMessage(assistantMessage);
-          setIsStreaming(true);
-          setStreamingMessageId(assistantMessageId);
-
-          let fullContent = '';
-          const response = await chatService.sendMessage(
-            conversationMessages, 
-            currentChatId || undefined, 
-            selectedModel,
-            isImageRequest ? 'image' : 'text',
-            (chunk) => {
-              fullContent += chunk;
-              updateMessage(assistantMessageId, { content: fullContent });
-            }
+        // Create chat for authenticated users
+        let chatId = currentChatId;
+        if (!chatId && user) {
+          const newChat = await chatService.createChat(
+            trimmedInput.slice(0, 50), 
+            user.id, 
+            true
           );
-
-          setIsStreaming(false);
-          setStreamingMessageId(null);
-
-          const { message, images, error } = response;
-
-          if (error) {
-            toast.error(error);
-            removeMessagesFrom(assistantMessageId);
+          if (!newChat) {
+            toast.error('Failed to create chat');
             return;
           }
-
-          // Update final content
-          updateMessage(assistantMessageId, {
-            content: message || fullContent,
-            generatedImages: images,
-          });
-
-          // Handle web search sources
-          if (isSearchRequest && message) {
-            // Mock sources for demo - in production, get from API
-            const mockSources = [
-              {
-                id: '1',
-                title: 'Search result about ' + input.trim().slice(0, 30),
-                url: 'https://example.com',
-                domain: 'example.com',
-                snippet: 'This is a snippet from the search result...',
-              },
-            ];
-            setSources(mockSources);
-            setSearchQuery(input.trim());
-            setShowSourcesSidebar(true);
-          }
-
-          // Reload messages from database
-          if (currentChatId) {
-            const updatedMessages = await chatService.getChatMessages(currentChatId);
-            setMessages(updatedMessages);
-          }
-          
-          setSelectedFiles([]);
-        } catch (error: any) {
-          toast.error(error.message || 'Failed to send message');
-        } finally {
-          setIsLoading(false);
-          setLoadingStatus(null);
+          chatId = newChat.id;
+          setCurrentChatId(chatId);
         }
-        return;
-      }
-    }
 
-    const userMessage = {
-      id: crypto.randomUUID(),
-      role: 'user' as const,
-      content: input.trim(),
-      created_at: new Date().toISOString(),
-      attachments: selectedFiles.map(f => ({
-        name: f.name,
-        type: f.type,
-        url: URL.createObjectURL(f),
-      })),
-    };
+        addMessage(userMessage);
+        setInput('');
+        clearFiles();
+        
+        if (isGuest) incrementMessageCount();
 
-    // Create new chat if needed (only for authenticated users)
-    let chatId = currentChatId;
-    if (!chatId && user) {
-      const newChat = await chatService.createChat(input.trim().slice(0, 50), user.id, true);
-      if (newChat) {
-        chatId = newChat.id;
-        setCurrentChatId(chatId);
-      } else {
-        toast.error('Failed to create chat');
-        setIsLoading(false);
-        return;
-      }
-    }
-
-    addMessage(userMessage);
-    setInput('');
-    setIsLoading(true);
-    
-    // Increment guest message count
-    if (isGuest) {
-      incrementMessageCount();
-    }
-    
-    // Determine loading status
-    const status = determineLoadingStatus(userMessage.content, selectedFiles.length > 0);
-    setLoadingStatus(status);
-
-    try {
-      const conversationMessages = [
-        ...messages.map((m) => ({ role: m.role, content: m.content })),
-        { role: 'user', content: userMessage.content },
-      ];
-
-      // Detect if user wants image generation
-      const isImageRequest = chatService.isImageRequest(userMessage.content);
-      const isSearchRequest = /search|find|look up|google/i.test(userMessage.content);
-
-      // Add assistant message for streaming
-      const assistantMessageId = crypto.randomUUID();
-      const assistantMessage = {
-        id: assistantMessageId,
-        role: 'assistant' as const,
-        content: '',
-        created_at: new Date().toISOString(),
-      };
-      addMessage(assistantMessage);
-      setIsStreaming(true);
-      setStreamingMessageId(assistantMessageId);
-
-      // Only pass chatId if user is authenticated
-      let fullContent = '';
-      const response = await chatService.sendMessage(
-        conversationMessages, 
-        user && chatId ? chatId : undefined, 
-        selectedModel,
-        isImageRequest ? 'image' : 'text',
-        (chunk) => {
-          fullContent += chunk;
-          updateMessage(assistantMessageId, { content: fullContent });
-        }
-      );
-
-      setIsStreaming(false);
-      setStreamingMessageId(null);
-
-      const { message, images, error } = response;
-
-      if (error) {
-        toast.error(error);
-        removeMessagesFrom(assistantMessageId);
-        return;
-      }
-
-      // Update final content
-      updateMessage(assistantMessageId, {
-        content: message || fullContent,
-        generatedImages: images,
-      });
-
-      // Handle web search sources
-      if (isSearchRequest && message) {
-        const mockSources = [
-          {
-            id: '1',
-            title: 'Search result about ' + userMessage.content.slice(0, 30),
-            url: 'https://example.com',
-            domain: 'example.com',
-            snippet: 'This is a snippet from the search result...',
-          },
+        const conversationMessages = [
+          ...messages.map(m => ({ role: m.role, content: m.content })),
+          { role: 'user', content: trimmedInput },
         ];
-        setSources(mockSources);
-        setSearchQuery(userMessage.content);
-        setShowSourcesSidebar(true);
-      }
 
-      // Reload messages from database to ensure sync (only for authenticated users)
-      if (user && chatId) {
-        const updatedMessages = await chatService.getChatMessages(chatId);
-        setMessages(updatedMessages);
+        await submitMessage(trimmedInput, fileList, conversationMessages, {
+          addMessage,
+          updateMessage,
+          removeMessagesFrom,
+          setLoadingStatus,
+          setIsStreaming,
+          setStreamingMessageId,
+          setSources,
+          setShowSourcesSidebar,
+          setSearchQuery,
+        });
+
+        if (user && chatId) {
+          const updated = await chatService.getChatMessages(chatId);
+          setMessages(updated);
+        }
       }
-      
-      setSelectedFiles([]);
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to send message');
-    } finally {
-      setIsLoading(false);
-      setLoadingStatus(null);
+    } catch (error) {
+      console.error('Submit error:', error);
     }
-  };
+  }, [
+    input, files, isLoading, isSubmitting, isGuest, currentChatId, user, 
+    editingMessageId, messages, submitMessage, addMessage, updateMessage, 
+    removeMessagesFrom, setLoadingStatus, setIsStreaming, setStreamingMessageId,
+    setSources, setShowSourcesSidebar, setSearchQuery, setCurrentChatId, 
+    setMessages, setEditingMessageId, incrementMessageCount, clearFiles, navigate
+  ]);
 
-  const handleCancelEdit = () => {
-    setEditingMessageId(null);
-    setInput('');
-  };
+  // Drag and drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    if (isGuest) {
+      toast.error('File uploads require login');
+      return;
+    }
+    
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    handleFileSelect(droppedFiles);
+  }, [isGuest, handleFileSelect]);
+
+  const isProcessing = isLoading || isSubmitting;
+  const hasContent = input.trim().length > 0 || files.length > 0;
 
   return (
-    <div className="sticky bottom-0 bg-background border-t border-border">
+    <div 
+      className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {isDragging && (
+        <div className="absolute inset-0 bg-primary/10 border-2 border-dashed border-primary rounded-lg m-2 flex items-center justify-center z-50 pointer-events-none">
+          <span className="text-primary font-medium">Drop files here</span>
+        </div>
+      )}
+
       <div className="max-w-3xl mx-auto px-4 py-4">
-        <form onSubmit={handleSubmit} className="relative">
-          <div className="flex items-end gap-2 bg-card border border-border rounded-3xl shadow-lg p-2">
-            {editingMessageId && (
-              <div className="absolute -top-10 left-0 right-0 flex items-center justify-between bg-blue-100 dark:bg-blue-900 px-4 py-2 rounded-t-xl">
-                <div className="flex items-center gap-2 text-sm">
-                  <Edit2 className="w-4 h-4" />
-                  <span>Editing message</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
-
-            {!editingMessageId && !isGuest && (
-              <button
-                type="button"
-                onClick={() => setAttachmentMenuOpen(true)}
-                className="flex-shrink-0 p-2.5 hover:bg-accent rounded-full transition-colors"
-              >
-                <Plus className="w-5 h-5" />
-              </button>
-            )}
-
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit(e);
-                }
-              }}
-              placeholder="Ask anything"
-              rows={1}
-              className="flex-1 resize-none bg-transparent outline-none py-2.5 px-2 max-h-[200px] overflow-y-auto scrollbar-hide"
-              style={{ fieldSizing: 'content' } as any}
-            />
-
-            {!editingMessageId && !isGuest && (
-              <button
-                type="button"
-                onClick={handleVoiceInput}
-                className={`flex-shrink-0 p-2.5 rounded-full transition-colors ${
-                  isRecording ? 'bg-destructive text-destructive-foreground' : 'hover:bg-accent'
-                }`}
-              >
-                <Mic className="w-5 h-5" />
-              </button>
-            )}
-
+        {/* Edit Mode Banner */}
+        {editingMessageId && (
+          <div className="mb-3 flex items-center justify-between bg-blue-100 dark:bg-blue-900/30 px-4 py-2 rounded-xl border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center gap-2 text-sm text-blue-800 dark:text-blue-200">
+              <Edit2 className="w-4 h-4" />
+              <span>Editing message</span>
+            </div>
             <button
-              type="submit"
-              disabled={!input.trim() || isLoading || !canSendMessage}
-              className={`flex-shrink-0 p-2.5 rounded-full transition-all ${
-                input.trim() && !isLoading && canSendMessage
-                  ? 'bg-foreground text-background hover:opacity-90'
-                  : 'bg-muted text-muted-foreground cursor-not-allowed'
-              }`}
+              onClick={handleCancelEdit}
+              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-medium transition-colors"
             >
-              <ArrowUp className="w-5 h-5" />
+              Cancel
             </button>
           </div>
-        </form>
+        )}
 
-        {selectedFiles.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {selectedFiles.map((file, index) => (
+        {/* File Attachments Preview */}
+        {files.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {files.map((attachment) => (
               <div
-                key={index}
-                className="flex items-center gap-2 bg-accent px-3 py-1.5 rounded-full text-sm"
+                key={attachment.id}
+                className="group flex items-center gap-2 bg-accent hover:bg-accent/80 px-3 py-1.5 rounded-full text-sm border border-border transition-colors"
               >
-                <span className="truncate max-w-[150px]">{file.name}</span>
+                {attachment.previewUrl ? (
+                  <img 
+                    src={attachment.previewUrl} 
+                    alt="" 
+                    className="w-5 h-5 rounded object-cover"
+                  />
+                ) : (
+                  <FileText className="w-4 h-4 text-muted-foreground" />
+                )}
+                <span className="truncate max-w-[120px]">{attachment.file.name}</span>
                 <button
-                  onClick={() => setSelectedFiles(files => files.filter((_, i) => i !== index))}
-                  className="hover:text-destructive"
+                  onClick={() => removeFile(attachment.id)}
+                  className="opacity-60 hover:opacity-100 hover:text-destructive transition-opacity"
+                  aria-label={`Remove ${attachment.file.name}`}
                 >
-                  ×
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             ))}
           </div>
         )}
 
-        {/* Disclaimer */}
-        <div className="mt-3 text-center">
-          <p className="text-xs text-muted-foreground">
-            Dawinix can make mistakes. Check important info.
-          </p>
+        {/* Main Input Form */}
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
+          className="relative"
+        >
+          <div className={cn(
+            "flex items-end gap-2 bg-card border rounded-3xl shadow-lg p-2 transition-all duration-200",
+            isDragging ? "border-primary ring-2 ring-primary/20" : "border-border",
+            isProcessing && "opacity-80"
+          )}>
+            {/* Attachment Button */}
+            {!editingMessageId && !isGuest && (
+              <button
+                type="button"
+                onClick={() => setAttachmentMenuOpen(true)}
+                disabled={isProcessing}
+                className="flex-shrink-0 p-2.5 hover:bg-accent rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Add attachment"
+              >
+                <Plus className="w-5 h-5" />
+              </button>
+            )}
+
+            {/* Text Input */}
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              placeholder={isGuest && isLimitReached() 
+                ? "Message limit reached. Log in to continue..." 
+                : "Ask anything..."
+              }
+              disabled={isProcessing || (isGuest && isLimitReached())}
+              rows={1}
+              className="flex-1 resize-none bg-transparent outline-none py-2.5 px-2 min-h-[44px] max-h-[240px] overflow-y-auto scrollbar-hide disabled:cursor-not-allowed"
+              style={{ lineHeight: '1.5' }}
+            />
+
+            {/* Voice Input Button */}
+            {!editingMessageId && !isGuest && isSpeechSupported && (
+              <button
+                type="button"
+                onClick={handleVoiceToggle}
+                disabled={isProcessing}
+                className={cn(
+                  "flex-shrink-0 p-2.5 rounded-full transition-all duration-200 disabled:opacity-50",
+                  isListening 
+                    ? "bg-red-500 text-white animate-pulse" 
+                    : "hover:bg-accent text-muted-foreground hover:text-foreground"
+                )}
+                aria-label={isListening ? "Stop listening" : "Start voice input"}
+              >
+                <Mic className="w-5 h-5" />
+              </button>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={!hasContent || isProcessing || !canSendMessage}
+              className={cn(
+                "flex-shrink-0 p-2.5 rounded-full transition-all duration-200 disabled:cursor-not-allowed",
+                hasContent && !isProcessing && canSendMessage
+                  ? "bg-foreground text-background hover:opacity-90 hover:scale-105 active:scale-95"
+                  : "bg-muted text-muted-foreground"
+              )}
+              aria-label="Send message"
+            >
+              <ArrowUp className={cn("w-5 h-5", isProcessing && "animate-bounce")} />
+            </button>
+          </div>
+        </form>
+
+        {/* Footer */}
+        <div className="mt-3 flex items-center justify-center gap-4 text-xs text-muted-foreground">
+          <span>AI can make mistakes. Verify important information.</span>
+          {isGuest && (
+            <span className="text-amber-600 dark:text-amber-400">
+              Guest mode • Limited messages
+            </span>
+          )}
         </div>
       </div>
 
