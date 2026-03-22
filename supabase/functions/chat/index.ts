@@ -3648,3 +3648,20 @@ Logger.info('Dawinix AI Edge Function initialized', {
   models: Object.keys(MODELS).length,
   features: ['chat', 'image', 'video', 'streaming', 'multilingual'],
 });
+
+Hello AI,
+
+Please fix all my messages and never paste code directly in the chat. Instead, put it in a proper code block. The AI should be able to send multiple types of code, including HTML, TypeScript, Python, and Bash, and fix the formatting so it works correctly.
+
+Make it better like in these examples:
+
+https://files.catbox.moe/helt03.jpeg
+https://files.catbox.moe/j5fhkl.jpeg
+https://files.catbox.moe/2p3cco.jpeg
+https://files.catbox.moe/2wjmw0.jpeg
+https://files.catbox.moe/ohocas.jpeg
+
+Also, improve the AI so that it sends functional, real code, and messages are clean and easy to read. If the AI needs to search a link for you, allow it to provide clickable links that actually work, instead of just thinking or pretending. Make it beautiful and functional, like in these examples:
+
+https://files.catbox.moe/kf4x4n.jpeg
+https://files.catbox.moe/0y6nns.jpeg.,
