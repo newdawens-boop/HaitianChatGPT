@@ -9,7 +9,21 @@ interface CodeBlockProps {
 export function CodeBlock({ code, language = 'plaintext' }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
-  const isHTML = language?.toLowerCase() === 'html' || code.trim().startsWith('<!DOCTYPE') || code.trim().startsWith('<html');
+  
+  // Auto-detect language if not specified
+  const detectedLanguage = language === 'plaintext' ? detectLanguage(code) : language;
+  const isHTML = detectedLanguage?.toLowerCase() === 'html' || code.trim().startsWith('<!DOCTYPE') || code.trim().startsWith('<html');
+  const isPython = detectedLanguage?.toLowerCase() === 'python' || detectedLanguage?.toLowerCase() === 'py';
+  const isJavaScript = ['javascript', 'js', 'typescript', 'ts', 'jsx', 'tsx'].includes(detectedLanguage?.toLowerCase() || '');
+  const isBash = ['bash', 'sh', 'shell'].includes(detectedLanguage?.toLowerCase() || '');
+
+  const detectLanguage = (code: string): string => {
+    if (code.trim().startsWith('<!DOCTYPE') || code.trim().startsWith('<html')) return 'html';
+    if (code.includes('def ') || code.includes('import ') || code.includes('print(')) return 'python';
+    if (code.includes('function ') || code.includes('const ') || code.includes('let ') || code.includes('=>')) return 'javascript';
+    if (code.trim().startsWith('#!/bin/bash') || code.includes('echo ')) return 'bash';
+    return 'plaintext';
+  };
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(code);
@@ -79,23 +93,28 @@ export function CodeBlock({ code, language = 'plaintext' }: CodeBlockProps) {
 
   return (
     <div className="my-4 rounded-xl overflow-hidden bg-[#282C34] shadow-lg border border-gray-700">
-      <div className="flex items-center justify-between px-3 sm:px-4 py-2 bg-[#21252B] border-b border-gray-700">
+      <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 bg-[#21252B] border-b border-gray-700">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-400 font-mono uppercase tracking-wide">{language}</span>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-[#FF5F56]"></div>
+            <div className="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
+            <div className="w-3 h-3 rounded-full bg-[#27C93F]"></div>
+          </div>
+          <span className="text-xs text-gray-400 font-mono uppercase tracking-wide ml-2">{detectedLanguage}</span>
           {isHTML && (
             <div className="flex items-center gap-1 ml-2">
               <button
                 onClick={() => setShowPreview(true)}
-                className={`px-2 py-0.5 text-xs rounded transition-colors ${
-                  showPreview ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+                className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
+                  showPreview ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700'
                 }`}
               >
                 Preview
               </button>
               <button
                 onClick={() => setShowPreview(false)}
-                className={`px-2 py-0.5 text-xs rounded transition-colors ${
-                  !showPreview ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+                className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
+                  !showPreview ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700'
                 }`}
               >
                 Code
@@ -103,38 +122,40 @@ export function CodeBlock({ code, language = 'plaintext' }: CodeBlockProps) {
             </div>
           )}
         </div>
-        <button
-          onClick={handleCopy}
-          className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-gray-700 transition-colors rounded-md"
-        >
-          {copied ? (
-            <>
-              <Check className="w-3.5 h-3.5 text-green-500" />
-              <span className="text-green-500 hidden sm:inline">Copied!</span>
-            </>
-          ) : (
-            <>
-              <Copy className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Copy code</span>
-            </>
-          )}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-gray-700 transition-colors rounded-md font-medium"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-green-500" />
+                <span className="text-green-500 hidden sm:inline">Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Copy code</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
       
       {isHTML && showPreview ? (
-        <div className="bg-white p-4 min-h-[200px] max-h-[600px] overflow-auto">
+        <div className="bg-white dark:bg-gray-100 p-6 min-h-[200px] max-h-[600px] overflow-auto">
           <iframe
             srcDoc={code}
-            className="w-full min-h-[200px] h-full border-0"
+            className="w-full min-h-[200px] h-full border-0 rounded"
             sandbox="allow-scripts"
             title="HTML Preview"
             style={{ height: '500px' }}
           />
         </div>
       ) : (
-        <pre className="p-3 sm:p-4 overflow-x-auto max-h-[60vh] sm:max-h-[70vh] overflow-y-auto">
-          <code className="text-xs sm:text-sm font-mono leading-relaxed text-[#ABB2BF]">
-            {highlightCode(code, language)}
+        <pre className="p-4 sm:p-5 overflow-x-auto max-h-[60vh] sm:max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+          <code className="text-xs sm:text-sm font-mono leading-[1.6] text-[#ABB2BF]">
+            {highlightCode(code, detectedLanguage)}
           </code>
         </pre>
       )}

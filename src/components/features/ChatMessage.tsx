@@ -259,10 +259,48 @@ export function ChatMessage({ message, isLatest = false, messageIndex = 1, total
 
           {/* Content */}
           <div className={`flex-1 space-y-3 ${isUser ? 'flex flex-col items-end' : ''}`}>
+            {/* Display images and videos first if in attachments */}
+            {isUser && message.attachments && message.attachments.length > 0 && (
+              <div className="space-y-2 max-w-md">
+                {message.attachments.map((attachment, index) => {
+                  const isImage = attachment.type?.startsWith('image/');
+                  const isVideo = attachment.type?.startsWith('video/');
+                  
+                  if (isImage) {
+                    return (
+                      <div key={index} className="relative group">
+                        <img
+                          src={attachment.url}
+                          alt={attachment.name || 'Attached image'}
+                          className="rounded-lg border border-border shadow-sm max-h-[400px] object-cover"
+                        />
+                      </div>
+                    );
+                  }
+                  
+                  if (isVideo) {
+                    return (
+                      <div key={index} className="relative group">
+                        <video
+                          src={attachment.url}
+                          controls
+                          className="rounded-lg border border-border shadow-sm max-h-[400px] w-full"
+                        >
+                          <source src={attachment.url} type={attachment.type} />
+                          Your browser does not support the video tag.
+                        </video>
+                      </div>
+                    );
+                  }
+                  
+                  return null;
+                })}
+              </div>
+            )}
+            
             <div className="prose prose-sm dark:prose-invert max-w-none break-words">
               <MessageContent 
                 content={message.content} 
-                attachments={message.attachments as any}
                 generatedImage={message.generatedImage}
                 generatedImages={message.generatedImages}
                 generatedFile={message.generatedFile}
