@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Plus, Mic, ArrowUp } from 'lucide-react';
+import { Menu, Plus, Mic, ArrowUp, Sparkles } from 'lucide-react';
 import { useModalStore } from '@/stores/modalStore';
 import { useGuestStore } from '@/stores/guestStore';
 import { useAuth } from '@/lib/auth';
@@ -97,6 +97,14 @@ export function WelcomePage() {
     toast.success(`Selected ${files.length} file(s)`);
   };
 
+  // Sample prompts for empty state
+  const samplePrompts = [
+    "Eksplike enpòtans lengwaj Kreyòl Ayisyen",
+    "Ede m ekri yon istwa kout",
+    "Ki sa Ayiti konn pou?",
+    "Bay m konsèy pou aprann yon lang nouvo"
+  ];
+
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Welcome Modal */}
@@ -119,7 +127,7 @@ export function WelcomePage() {
       <UserMenu />
 
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-border/40">
+      <header className="flex items-center justify-between px-3 sm:px-4 py-3 sm:py-3.5 border-b border-border/40">
         <button
           onClick={() => navigate('/chat')}
           className="p-2 hover:bg-accent/50 rounded-lg transition-colors"
@@ -157,16 +165,37 @@ export function WelcomePage() {
         </div>
       </header>
 
-      {/* Messages */}
+      {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
         {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full px-4">
-            <h2 className="text-4xl md:text-5xl font-normal text-foreground/80">
-              Ready when you are.
-            </h2>
+          <div className="flex flex-col items-center justify-center h-full px-4 pb-24">
+            {/* Main Heading */}
+            <div className="text-center mb-8 sm:mb-12">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-medium text-foreground/90 tracking-tight">
+                Ready when you are.
+              </h1>
+            </div>
+
+            {/* Sample Prompts Grid */}
+            <div className="w-full max-w-3xl grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 px-4">
+              {samplePrompts.map((prompt, index) => (
+                <button
+                  key={index}
+                  onClick={() => setInput(prompt)}
+                  className="group relative p-4 sm:p-5 bg-card border border-border/60 rounded-2xl hover:bg-accent/30 hover:border-border transition-all text-left"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-sm sm:text-[15px] text-foreground/80 group-hover:text-foreground transition-colors">
+                      {prompt}
+                    </p>
+                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground/50 group-hover:text-primary transition-colors flex-shrink-0" />
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 pb-4">
             {messages.map((message, index) => (
               <ChatMessage
                 key={message.id}
@@ -177,7 +206,7 @@ export function WelcomePage() {
             {isLoading && (
               <div className="py-6 px-4 bg-muted/30">
                 <div className="max-w-3xl mx-auto flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
                     <span className="text-white font-bold text-sm">HC</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -192,11 +221,11 @@ export function WelcomePage() {
         )}
       </main>
 
-      {/* Input Area */}
-      <div className="sticky bottom-0 bg-background border-t border-border/40">
-        <div className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      {/* Input Area - Fixed at bottom */}
+      <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border/40">
+        <div className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-5">
           <form onSubmit={handleSubmit} className="relative">
-            <div className="flex items-end gap-1 sm:gap-2 bg-card border border-border/60 rounded-[22px] sm:rounded-[26px] shadow-sm hover:shadow-md transition-shadow p-1.5 sm:p-2">
+            <div className="flex items-end gap-1.5 sm:gap-2 bg-card border border-border/60 rounded-[24px] sm:rounded-[26px] shadow-sm hover:shadow-md transition-all p-1.5 sm:p-2">
               <button
                 type="button"
                 onClick={() => setShowAttachmentModal(true)}
@@ -217,7 +246,7 @@ export function WelcomePage() {
                 }}
                 placeholder="Ask anything"
                 rows={1}
-                className="flex-1 resize-none bg-transparent outline-none py-2 sm:py-2.5 px-1 sm:px-2 max-h-[150px] sm:max-h-[200px] overflow-y-auto text-sm sm:text-[15px]"
+                className="flex-1 resize-none bg-transparent outline-none py-2.5 sm:py-3 px-1 sm:px-2 max-h-[140px] sm:max-h-[180px] overflow-y-auto text-sm sm:text-[15px] placeholder:text-muted-foreground/60"
                 style={{ fieldSizing: 'content' } as any}
               />
 
@@ -245,8 +274,9 @@ export function WelcomePage() {
             </div>
           </form>
 
-          <div className="mt-2 sm:mt-3 text-center px-2">
-            <p className="text-[10px] sm:text-xs text-muted-foreground">
+          {/* Footer Text */}
+          <div className="mt-2.5 sm:mt-3 text-center px-2">
+            <p className="text-[10px] sm:text-xs text-muted-foreground/70">
               {!user && (
                 <>
                   <span className={messageCount >= 15 ? 'text-orange-500 font-medium' : ''}>
@@ -255,7 +285,7 @@ export function WelcomePage() {
                   {' '}
                   <button
                     onClick={() => navigate('/auth')}
-                    className="underline hover:text-primary transition-colors"
+                    className="underline hover:text-primary transition-colors font-medium"
                   >
                     Login for unlimited
                   </button>
@@ -270,4 +300,3 @@ export function WelcomePage() {
     </div>
   );
 }
-Hello ai if see this fix redesign the wlcome page like the photo reference:https://files.catbox.moe/dqie1i.jpeg dont skip the m,essage make the change.,
