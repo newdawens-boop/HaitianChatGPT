@@ -83,7 +83,7 @@ export function ChatPage() {
       />
       {!showEmptyState && <ChatHeader />}
       
-      <div className="flex-1 overflow-y-auto overscroll-contain">
+      <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-hide">
         {showEmptyState ? (
           <div className="h-full flex flex-col items-center justify-center px-4">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-2 text-center">
@@ -129,4 +129,3 @@ export function ChatPage() {
     </div>
   );
 }
-Please remove the vertical scroll bar from the interface so that the content fits entirely without scrolling in all page https://files.catbox.moe/fjjr7a.jpeg

@@ -367,7 +367,7 @@ export function ChatInput() {
               }}
               placeholder="Ask anything"
               rows={1}
-              className="flex-1 resize-none bg-transparent outline-none py-2.5 px-2 max-h-[200px] scrollbar-hide"
+              className="flex-1 resize-none bg-transparent outline-none py-2.5 px-2 max-h-[200px] overflow-y-auto scrollbar-hide"
               style={{ fieldSizing: 'content' } as any}
             />
 

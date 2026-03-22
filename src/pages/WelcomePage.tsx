@@ -161,7 +161,7 @@ export function WelcomePage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto scrollbar-hide">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full px-4 pb-24">
             {/* Main Heading */}
