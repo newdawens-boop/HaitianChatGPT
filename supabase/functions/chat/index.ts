@@ -3664,4 +3664,4 @@ https://files.catbox.moe/ohocas.jpeg
 Also, improve the AI so that it sends functional, real code, and messages are clean and easy to read. If the AI needs to search a link for you, allow it to provide clickable links that actually work, instead of just thinking or pretending. Make it beautiful and functional, like in these examples:
 
 https://files.catbox.moe/kf4x4n.jpeg
-https://files.catbox.moe/0y6nns.jpeg.,
+https://files.catbox.moe/0y6nns.jpeg.
