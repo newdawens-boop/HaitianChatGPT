@@ -7,7 +7,6 @@ import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { AttachmentMenu } from '../modals/AttachmentMenu';
-import { AttachmentMenu } from '../modals/AttachmentModal';
 import { useModalStore } from '@/stores/modalStore';
 import { useSpeechToText } from '@/hooks/useSpeechToText';
 import { useAutoResize } from '@/hooks/useAutoResize';
