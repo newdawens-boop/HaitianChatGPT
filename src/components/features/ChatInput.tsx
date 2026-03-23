@@ -478,12 +478,3 @@ export function ChatInput() {
     </div>
   );
 }
-hello ai please if you see this dont skip please add real fle upload real photo upload real upload take and  past tex send to the ai and fix you  can send the photo without tex ask mustask what you want to the pjoto make the page better and attachament modal make its better in mobile and fix ai generate message and please fix this:{
-  "eventMessage": "POST | 400 | http://hdnpxrbyzscpstcihdnp.backend.onspace.ai/functions/v1/chat | Bad Request",
-  "functionId": "chat",
-  "id": "a3094b1d-ccbd-4b1f-92f7-6f38e8f255ad",
-  "logLevel": "ERROR",
-  "method": "POST",
-  "statusCode": 400,
-  "timestamp": 1774255002
-}
