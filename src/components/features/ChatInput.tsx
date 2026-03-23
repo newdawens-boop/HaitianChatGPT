@@ -478,3 +478,4 @@ export function ChatInput() {
     </div>
   );
 }
+hello ai please if you see this dont skip please add real fle upload real photo upload real upload take and  past tex send to the ai and fix you  can send the photo without tex ask mustask what you want to the pjoto make the page better and attachament modal make its better in mobile and fix ai generate message 
