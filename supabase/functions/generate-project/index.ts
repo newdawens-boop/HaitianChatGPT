@@ -190,8 +190,11 @@ serve(async (req) => {
       });
     }
 
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseUrl = Deno.env.get('VITE_SUPABASE_URL_2');
+    const supabaseKey = Deno.env.get('VITE_SUPABASE_ANON_KEY_2');
     
     if (!supabaseUrl || !supabaseKey) {
       console.error('Missing environment variables');
